@@ -15,7 +15,7 @@ background = pygame.transform.scale(background, (bg_width, bg_height))
 
 # Load & Scale Player
 player = pygame.image.load("player-Photoroom.png")  # Replace with your sprite
-player = pygame.transform.scale(player, (70, 50))  # Adjust size if needed
+player = pygame.transform.scale(player, (40, 50))  # Adjust size if needed
 
 # Player & Camera Variables
 player_x, player_y = 100, 300  # Player's Position
