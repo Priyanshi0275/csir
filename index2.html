@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silver Lake - Element Collection Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #333;
+            font-family: 'Courier New', monospace;
+            color: white;
+        }
+        
+#return-to-menu {
+    padding: 8px 15px;
+    font-size: 1rem;
+    background-color: #795548;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: background-color 0.3s;
+}
+
+#return-to-menu:hover {
+    background-color: #5d4037;
+}
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            margin: 20px auto;
+            background-color: #87CEEB; /* Sky blue background */
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        
+        /* Lake scene */
+        .lake {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 70%;
+            background-color: #1E90FF;
+            animation: water-ripple 8s infinite linear;
+        }
+        
+        /* Lake ripple effect */
+        @keyframes water-ripple {
+            0%, 100% { background-color: #1E90FF; }
+            50% { background-color: #4169E1; }
+        }
+        
+        /* Ground area */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            background-color: #8B4513;
+        }
+        
+        /* Trees */
+        .tree {
+            position: absolute;
+            bottom: 100px;
+            width: 30px;
+            height: 60px;
+            background-color: #228B22;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+        
+        /* Dock */
+        .dock {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 20px;
+            background-color: #8B4513;
+        }
+        
+        /* Components */
+        .component {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #999;
+            border: 2px solid #333;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 10px;
+            color: #333;
+        }
+        
+        .component.battery {
+            background-color: #FFD700;
+        }
+        
+        .component.wire {
+            background-color: #CD5C5C;
+        }
+        
+        .component.plate {
+            background-color: #C0C0C0;
+        }
+        
+        .component.container {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid white;
+        }
+        
+        /* Device assembly area */
+        #assembly-area {
+            position: absolute;
+            bottom: 130px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 160px;
+            height: 120px;
+            background-color: rgba(139, 69, 19, 0.8);
+            border: 3px solid #5c3b1d;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 5px;
+            padding: 5px;
+            z-index: 5;
+        }
+        
+        .assembly-slot {
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px dashed white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* UI Elements */
+        #ui-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .element-counter {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .element-icon {
+            width: 30px;
+            height: 30px;
+            border: 2px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        #hydrogen-counter {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        #oxygen-counter {
+            background-color: #87CEFA;
+            color: #333;
+        }
+        
+        /* Journal */
+        #journal-icon {
+            position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 60px;
+    height: 50px;
+    background-color: #8B4513;
+    border: 2px solid #5c3b1d;
+    cursor: pointer;
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+        }
+        
+        #journal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 300px;
+            background-color: #d6c8ab;
+            border: 5px solid #8B4513;
+            padding: 20px;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            display: none;
+            z-index: 100;
+            overflow-y: auto;
+        }
+        
+        /* Power slider - REPOSITIONED */
+        #power-control {
+            position: absolute;
+            top: 55px; /* Changed from bottom to top */
+            right: 10px; /* Changed from left to right */
+            width: 180px;
+            height: 80px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            padding: 10px;
+            display: none;
+            z-index: 20;
+        }
+        
+        #power-slider {
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        /* Bubble animations */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.7);
+            animation: bubble-rise 3s linear forwards;
+            z-index: 15;
+        }
+        
+        @keyframes bubble-rise {
+            0% { transform: translateY(0); opacity: 0.7; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+        
+        /* Messages */
+        #message-box {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        /* Character */
+        #character {
+            position: absolute;
+            width: 30px;
+            height: 50px;
+            background-color: #964B00;
+            bottom: 100px;
+            left: 100px;
+            z-index: 20;
+        }
+        
+        #character::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #F5DEB3;
+            border-radius: 50%;
+            top: -15px;
+            left: 5px;
+        }
+        
+        /* Close button for journal */
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #5c3b1d;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+        
+        /* Level completion */
+        #level-complete {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        #level-complete h2 {
+            color: gold;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        
+        #level-complete p {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 30px;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        /* Button styling */
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        #back-home-button {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 50;
+}
+
+#return-to-menu {
+    padding: 8px 15px;
+    font-size: 1rem;
+    background-color: #795548;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: background-color 0.3s;
+}
+
+#return-to-menu:hover {
+    background-color: #5d4037;
+}
+
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Background Elements -->
+        <div class="lake"></div>
+        <div class="ground"></div>
+        
+        <!-- Trees -->
+        <div class="tree" style="left: 50px;"></div>
+        <div class="tree" style="left: 100px;"></div>
+        <div class="tree" style="left: 700px;"></div>
+        <div class="tree" style="left: 650px;"></div>
+        
+        <!-- Dock -->
+        <div class="dock"></div>
+        
+        <!-- Assembly Area -->
+        <div id="assembly-area">
+            <div class="assembly-slot" data-type="battery"></div>
+            <div class="assembly-slot" data-type="wire"></div>
+            <div class="assembly-slot" data-type="plate"></div>
+            <div class="assembly-slot" data-type="plate"></div>
+            <div class="assembly-slot" data-type="container"></div>
+            <div class="assembly-slot" data-type="container"></div>
+        </div>
+        
+        <!-- Components to find -->
+        <div class="component battery" data-type="battery" style="top: 300px; left: 100px;">B</div>
+        <div class="component wire" data-type="wire" style="top: 200px; left: 250px;">W</div>
+        <div class="component plate" data-type="plate" style="top: 400px; left: 700px;">P1</div>
+        <div class="component plate" data-type="plate" style="top: 350px; left: 650px;">P2</div>
+        <div class="component container" data-type="container" style="top: 250px; left: 500px;">C1</div>
+        <div class="component container" data-type="container" style="top: 180px; left: 600px;">C2</div>
+        
+        <!-- Character -->
+        <div id="character"></div>
+        
+        <!-- UI Elements -->
+        <div id="ui-container">
+            <div class="element-counter">
+                <div class="element-icon" id="hydrogen-counter">H</div>
+                <span id="hydrogen-count">0</span>
+            </div>
+            <div class="element-counter">
+                <div class="element-icon" id="oxygen-counter">O</div>
+                <span id="oxygen-count">0</span>
+            </div>
+        </div>
+        
+        <div id="journal-icon">Journal</div>
+        
+        <div id="journal">
+            <button class="close-btn">X</button>
+            <h2>Alchemist's Journal</h2>
+            <p><i>Entry for Silver Lake:</i></p>
+            <p>"The water holds two life-giving elements, bound together yet separate in nature. To reveal their true forms, one must separate what has been joined by nature's hand."</p>
+            <p>Notes: The ancient alchemists discovered that water itself is not an element, but a combination of two gases - hydrogen and oxygen. Using electricity, we can split water into its component parts.</p>
+            <div style="text-align: center;">
+                <pre>
+    [Battery] --- [Wire] ---
+        |             |
+    [Plate1]       [Plate2]
+        |             |
+    [Container1]  [Container2]
+                </pre>
+            </div>
+            <p>Assembly Instructions:</p>
+            <ol>
+                <li>Connect the battery to the wire</li>
+                <li>Connect each plate to the circuit</li>
+                <li>Position containers to collect gases</li>
+                <li>Apply proper current to split water</li>
+            </ol>
+        </div>
+        
+        <!-- Repositioned Power Control -->
+        <div id="power-control">
+            <p>Adjust Power Level:</p>
+            <input type="range" id="power-slider" min="0" max="100" value="0">
+            <button id="activate-button">Activate Device</button>
+        </div>
+        
+        <div id="message-box"></div>
+        
+        <div id="level-complete">
+            <h2>Level Complete!</h2>
+            <p>You've successfully collected hydrogen and oxygen from Silver Lake! Your journal has been updated with new knowledge about these elements.</p>
+            <p>Water (H₂O) is composed of two hydrogen atoms bonded with one oxygen atom. These elements are essential for all known forms of life.</p>
+            <button id="continue-button">Go to Next Level</button>
+        </div>
+    </div>
+
+    <div id="back-home-button">
+        <button id="return-to-menu">Back to Journal</button>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game state
+            const gameState = {
+                hydrogenCollected: false,
+                oxygenCollected: false,
+                deviceAssembled: false,
+                journalOpen: false,
+                componentsPlaced: {
+                    battery: false,
+                    wire: false,
+                    plate: [false, false],
+                    container: [false, false]
+                },
+                draggingElement: null
+            };
+            
+            // UI Elements
+            const journalIcon = document.getElementById('journal-icon');
+            const journal = document.getElementById('journal');
+            const closeJournalBtn = document.querySelector('.close-btn');
+            const powerControl = document.getElementById('power-control');
+            const powerSlider = document.getElementById('power-slider');
+            const activateButton = document.getElementById('activate-button');
+            const messageBox = document.getElementById('message-box');
+            const hydrogenCount = document.getElementById('hydrogen-count');
+            const oxygenCount = document.getElementById('oxygen-count');
+            const levelComplete = document.getElementById('level-complete');
+            const continueButton = document.getElementById('continue-button');
+            
+            // Make components draggable
+            const components = document.querySelectorAll('.component');
+            components.forEach(component => {
+                component.addEventListener('mousedown', startDrag);
+            });
+            
+            // Journal toggle
+            journalIcon.addEventListener('click', () => {
+                journal.style.display = gameState.journalOpen ? 'none' : 'block';
+                gameState.journalOpen = !gameState.journalOpen;
+            });
+            
+            closeJournalBtn.addEventListener('click', () => {
+                journal.style.display = 'none';
+                gameState.journalOpen = false;
+            });
+            document.getElementById('return-to-menu').addEventListener('click', function() {
+    // First save current progress before returning to menu
+    // If you haven't collected the elements yet, you might want to add logic
+    // to prompt the user that progress won't be saved
+    
+    // Redirect to the landing page
+    window.location.href = 'index.html';
+});
+            // Activate device
+            activateButton.addEventListener('click', () => {
+                const powerLevel = parseInt(powerSlider.value);
+                
+                if (powerLevel < 30) {
+                    showMessage("Power level too low. Increase power!");
+                } else if (powerLevel > 80) {
+                    showMessage("Power level too high! Device overloaded!");
+                    resetAssembly();
+                } else {
+                    // Success!
+                    startElectrolysis();
+                }
+            });
+            
+            // Continue button
+            continueButton.addEventListener('click', () => {
+                window.location.href = "index3.html";
+            });
+            
+            // Character movement
+            document.addEventListener('keydown', moveCharacter);
+            
+            // Dragging functionality
+            function startDrag(e) {
+                if (gameState.draggingElement) return;
+                
+                gameState.draggingElement = this;
+                const rect = this.getBoundingClientRect();
+                
+                // Calculate offset from mouse position
+                const offsetX = e.clientX - rect.left;
+                const offsetY = e.clientY - rect.top;
+                
+                gameState.dragOffsetX = offsetX;
+                gameState.dragOffsetY = offsetY;
+                
+                document.addEventListener('mousemove', dragElement);
+                document.addEventListener('mouseup', stopDrag);
+                
+                // Prevent other events
+                e.preventDefault();
+            }
+            
+            function dragElement(e) {
+                if (!gameState.draggingElement) return;
+                
+                const gameContainer = document.getElementById('game-container');
+                const rect = gameContainer.getBoundingClientRect();
+                
+                let left = e.clientX - rect.left - gameState.dragOffsetX;
+                let top = e.clientY - rect.top - gameState.dragOffsetY;
+                
+                // Keep element within game container
+                left = Math.max(0, Math.min(left, rect.width - gameState.draggingElement.offsetWidth));
+                top = Math.max(0, Math.min(top, rect.height - gameState.draggingElement.offsetHeight));
+                
+                gameState.draggingElement.style.left = left + 'px';
+                gameState.draggingElement.style.top = top + 'px';
+            }
+            
+            function stopDrag() {
+                if (!gameState.draggingElement) return;
+                
+                // Check if component is over a valid assembly slot
+                const slots = document.querySelectorAll('.assembly-slot');
+                const componentType = gameState.draggingElement.getAttribute('data-type');
+                
+                slots.forEach(slot => {
+                    const slotRect = slot.getBoundingClientRect();
+                    const elementRect = gameState.draggingElement.getBoundingClientRect();
+                    
+                    // Check if component is over this slot
+                    if (
+                        elementRect.left < slotRect.right &&
+                        elementRect.right > slotRect.left &&
+                        elementRect.top < slotRect.bottom &&
+                        elementRect.bottom > slotRect.top
+                    ) {
+                        // Check if the slot is for this component type
+                        if (slot.getAttribute('data-type') === componentType) {
+                            // If slot is empty and component type matches
+                            if (!slot.hasChildNodes()) {
+                                // Place component in slot
+                                const component = gameState.draggingElement;
+                                component.style.position = 'relative';
+                                component.style.top = '0';
+                                component.style.left = '0';
+                                component.style.margin = 'auto';
+                                
+                                // Update game state
+                                updateComponentsPlaced(componentType, true);
+                                
+                                slot.appendChild(component);
+                                checkDeviceAssembly();
+                            }
+                        }
+                    }
+                });
+                
+                gameState.draggingElement = null;
+                document.removeEventListener('mousemove', dragElement);
+                document.removeEventListener('mouseup', stopDrag);
+            }
+            
+            function updateComponentsPlaced(type, status) {
+                if (type === 'battery') {
+                    gameState.componentsPlaced.battery = status;
+                } else if (type === 'wire') {
+                    gameState.componentsPlaced.wire = status;
+                } else if (type === 'plate') {
+                    // Find first false value and set it to true
+                    for (let i = 0; i < gameState.componentsPlaced.plate.length; i++) {
+                        if (!gameState.componentsPlaced.plate[i]) {
+                            gameState.componentsPlaced.plate[i] = status;
+                            break;
+                        }
+                    }
+                } else if (type === 'container') {
+                    // Find first false value and set it to true
+                    for (let i = 0; i < gameState.componentsPlaced.container.length; i++) {
+                        if (!gameState.componentsPlaced.container[i]) {
+                            gameState.componentsPlaced.container[i] = status;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            function checkDeviceAssembly() {
+                // Check if all components are placed
+                const allComponentsPlaced = 
+                    gameState.componentsPlaced.battery && 
+                    gameState.componentsPlaced.wire && 
+                    gameState.componentsPlaced.plate.every(p => p) && 
+                    gameState.componentsPlaced.container.every(c => c);
+                
+                if (allComponentsPlaced && !gameState.deviceAssembled) {
+                    showMessage("Device assembled! Adjust power level to activate.");
+                    gameState.deviceAssembled = true;
+                    powerControl.style.display = 'block';
+                }
+            }
+            
+            function startElectrolysis() {
+                showMessage("Electrolysis started! Collecting elements...");
+                
+                // Start bubble animations
+                createBubbles('hydrogen');
+                createBubbles('oxygen');
+                
+                // After animation completes, collect elements
+                setTimeout(() => {
+                    collectElement('hydrogen');
+                }, 3000);
+                
+                setTimeout(() => {
+                    collectElement('oxygen');
+                }, 5000);
+            }
+            
+            function createBubbles(elementType) {
+                const containers = document.querySelectorAll('.assembly-slot[data-type="container"]');
+                const container = elementType === 'hydrogen' ? containers[0] : containers[1];
+                
+                // Create bubbles
+                for (let i = 0; i < 10; i++) {
+                    setTimeout(() => {
+                        const bubble = document.createElement('div');
+                        bubble.classList.add('bubble');
+                        bubble.style.width = Math.random() * 5 + 3 + 'px';
+                        bubble.style.height = bubble.style.width;
+                        
+                        // Color based on element
+                        if (elementType === 'hydrogen') {
+                            bubble.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+                        } else {
+                            bubble.style.backgroundColor = 'rgba(135, 206, 250, 0.8)';
+                        }
+                        
+                        // Position at bottom of container
+                        const containerRect = container.getBoundingClientRect();
+                        const gameContainerRect = document.getElementById('game-container').getBoundingClientRect();
+                        
+                        const startX = containerRect.left - gameContainerRect.left + Math.random() * containerRect.width;
+                        const startY = containerRect.top - gameContainerRect.top + containerRect.height - 5;
+                        
+                        bubble.style.left = startX + 'px';
+                        bubble.style.bottom = (gameContainerRect.height - startY) + 'px';
+                        
+                        document.getElementById('game-container').appendChild(bubble);
+                        
+                        // Remove bubble after animation
+                        setTimeout(() => {
+                            bubble.remove();
+                        }, 3000);
+                    }, i * 300);
+                }
+            }
+            
+            function collectElement(elementType) {
+                if (elementType === 'hydrogen' && !gameState.hydrogenCollected) {
+                    gameState.hydrogenCollected = true;
+                    hydrogenCount.textContent = '1';
+                    showMessage("Hydrogen collected!");
+                    
+                    // Highlight hydrogen container
+                    document.getElementById('hydrogen-counter').style.boxShadow = '0 0 10px #fff';
+                    setTimeout(() => {
+                        document.getElementById('hydrogen-counter').style.boxShadow = 'none';
+                    }, 1000);
+                } else if (elementType === 'oxygen' && !gameState.oxygenCollected) {
+                    gameState.oxygenCollected = true;
+                    oxygenCount.textContent = '1';
+                    showMessage("Oxygen collected!");
+                    
+                    // Highlight oxygen container
+                    document.getElementById('oxygen-counter').style.boxShadow = '0 0 10px #fff';
+                    setTimeout(() => {
+                        document.getElementById('oxygen-counter').style.boxShadow = 'none';
+                    }, 1000);
+                }
+                
+                // Check if level is complete
+                if (gameState.hydrogenCollected && gameState.oxygenCollected) {
+                    setTimeout(() => {
+                        levelComplete.style.display = 'flex';
+                    }, 2000);
+                }
+            }
+            
+            function resetAssembly() {
+                // Reset all components to their starting positions
+                const slots = document.querySelectorAll('.assembly-slot');
+                slots.forEach(slot => {
+                    if (slot.hasChildNodes()) {
+                        const component = slot.firstChild;
+                        document.getElementById('game-container').appendChild(component);
+                        
+                        // Reset component styles
+                        component.style.position = 'absolute';
+                        
+                        // Reset to original positions
+                        if (component.getAttribute('data-type') === 'battery') {
+                            component.style.top = '300px';
+                            component.style.left = '100px';
+                        } else if (component.getAttribute('data-type') === 'wire') {
+                            component.style.top = '200px';
+                            component.style.left = '250px';
+                        } else if (component.getAttribute('data-type') === 'plate') {
+                            component.style.top = '400px';
+                            component.style.left = '700px';
+                        } else if (component.getAttribute('data-type') === 'container') {
+                            component.style.top = '250px';
+                            component.style.left = '500px';
+                        }
+                    }
+                });
+                
+                // Reset gameState
+                gameState.deviceAssembled = false;
+                gameState.componentsPlaced = {
+                    battery: false,
+                    wire: false,
+                    plate: [false, false],
+                    container: [false, false]
+                };
+                
+                // Hide power control
+                powerControl.style.display = 'none';
+            }
+            
+            function moveCharacter(e) {
+                const character = document.getElementById('character');
+                const currentLeft = parseInt(window.getComputedStyle(character).left);
+                const currentBottom = parseInt(window.getComputedStyle(character).bottom);
+                
+                const step = 10;
+                
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        character.style.left = Math.max(0, currentLeft - step) + 'px';
+                        break;
+                    case 'ArrowRight':
+                        character.style.left = Math.min(770, currentLeft + step) + 'px';
+                        break;
+                    case 'ArrowUp':
+                        // Only move up if on the dock
+                        if (currentLeft > 300 && currentLeft < 500) {
+                            character.style.bottom = Math.min(120, currentBottom + step) + 'px';
+                        }
+                        break;
+                    case 'ArrowDown':
+                        character.style.bottom = Math.max(100, currentBottom - step) + 'px';
+                        break;
+                }
+                
+                // Check if character is near a component to show message
+                checkNearbyComponents(currentLeft, 600 - currentBottom);
+            }
+            
+            function checkNearbyComponents(characterX, characterY) {
+                const components = document.querySelectorAll('.component');
+                components.forEach(component => {
+                    const compLeft = parseInt(window.getComputedStyle(component).left);
+                    const compTop = parseInt(window.getComputedStyle(component).top);
+                    
+                    // Calculate distance
+                    const distance = Math.sqrt(
+                        Math.pow(characterX - compLeft, 2) + 
+                        Math.pow(characterY - compTop, 2)
+                    );
+                    
+                    // If character is near a component, show message
+                    if (distance < 50) {
+                        const type = component.getAttribute('data-type');
+                        if (type === 'battery') {
+                            showMessage("A battery! This will power the device.");
+                        } else if (type === 'wire') {
+                            showMessage("Copper wire. Perfect for conducting electricity.");
+                        } else if (type === 'plate') {
+                            showMessage("Metal plate. These will be submerged in water.");
+                        } else if (type === 'container') {
+                            showMessage("Glass container. Used to collect gases.");
+                        }
+                    }
+                });
+            }
+            
+            function showMessage(text) {
+                const messageBox = document.getElementById('message-box');
+                messageBox.textContent = text;
+                messageBox.style.opacity = '1';
+                
+                // Hide message after delay
+                setTimeout(() => {
+                    messageBox.style.opacity = '0';
+                }, 3000);
+            }
+            
+           // Display the first welcome message immediately
+showMessage("Welcome to Silver Lake!");
+
+// Display the second message after a 3-second delay
+setTimeout(() => {
+    showMessage("Open the journal above for steps to build the electrolysis device.");
+}, 4000);
+
+        });
+        // Add this function to each level file
+function completeLevel(levelNumber, collectedElements = []) {
+    // Load current progress
+    const savedProgress = localStorage.getItem('elementHuntingProgress');
+    let gameProgress = savedProgress ? JSON.parse(savedProgress) : {
+        currentLevel: 1,
+        completedLevels: [],
+        collectedElements: {
+            carbon: false,
+            hydrogen: false,
+            oxygen: false,
+            iron: false,
+            nitrogen: false,
+            calcium: false,
+            copper: false,
+            sodium: false,
+            chlorine: false,
+            silicon: false
+        }
+    };
+    
+    // Update progress
+    if (!gameProgress.completedLevels.includes(levelNumber)) {
+        gameProgress.completedLevels.push(levelNumber);
+    }
+    
+    // Update collected elements
+    collectedElements.forEach(element => {
+        if (gameProgress.collectedElements.hasOwnProperty(element)) {
+            gameProgress.collectedElements[element] = true;
+        }
+    });
+    
+    // Update current level to next level unless we're on the final level
+    if (levelNumber < 8) {
+        gameProgress.currentLevel = levelNumber + 1;
+    }
+    
+    // Save updated progress
+    localStorage.setItem('elementHuntingProgress', JSON.stringify(gameProgress));
+    
+    return gameProgress;
+}
+    </script>
+</body>
+</html>

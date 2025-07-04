@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunny Orchard - Nitrogen Quest</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #135a10;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background-color: #8cc751;
+            image-rendering: pixelated;
+            overflow: hidden;
+            border: 6px solid #654321;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+        }
+        
+        #journal {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(139, 69, 19, 0.9);
+            border: 4px solid #654321;
+            color: #fff;
+            padding: 15px;
+            font-size: 16px;
+            width: 320px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+        }
+        
+        #journal h3 {
+            margin-top: 0;
+            color: #FFD700;
+            border-bottom: 2px solid #FFD700;
+            padding-bottom: 5px;
+        }
+        
+        #nitrogen-counter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #7cfc00;
+            padding: 8px 15px;
+            font-size: 18px;
+            border: 3px solid #4444ff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 255, 0.5);
+        }
+        
+        #dialog-box {
+            position: absolute;
+            bottom: 20px;
+            padding: 15px 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            width: 80%;
+            left: 10%;
+            border: 3px solid white;
+            border-radius: 10px;
+            display: none;
+            z-index: 20;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            font-size: 18px;
+        }
+        
+        #puzzle-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 4px solid #4444ff;
+            border-radius: 10px;
+            padding: 25px;
+            color: white;
+            display: none;
+            z-index: 30;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(68, 68, 255, 0.6);
+        }
+        
+        #puzzle-container h2 {
+            color: #7cfc00;
+            margin-top: 0;
+        }
+        
+        .fertilizer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            grid-gap: 15px;
+            margin: 25px auto;
+        }
+        
+        .fertilizer-cell {
+            width: 80px;
+            height: 80px;
+            background-color: #654321;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            cursor: pointer;
+            position: relative;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: 2px solid #554321;
+            color: #ffcc00;
+            font-weight: bold;
+        }
+        
+        .fertilizer-cell:hover {
+            background-color: #755432;
+            transform: scale(1.05);
+        }
+        
+        .fertilizer-cell.selected {
+            border: 3px solid #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        
+        button {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background-color: #4444ff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            border-radius: 8px;
+            margin: 10px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:hover {
+            background-color: #5555ff;
+            transform: scale(1.05);
+        }
+        
+        #level-complete {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 4px solid #00ff00;
+            border-radius: 15px;
+            padding: 40px;
+            color: white;
+            text-align: center;
+            display: none;
+            z-index: 40;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+        }
+        
+        .element-icon {
+            font-size: 72px;
+            color: #7cfc00;
+            margin: 30px 0;
+            text-shadow: 0 0 15px rgba(124, 252, 0, 0.8);
+            background: rgba(0, 50, 0, 0.3);
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            border-radius: 50%;
+            display: inline-block;
+            border: 3px solid #7cfc00;
+        }
+        
+        #controls-info {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ddd;
+            font-size: 14px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        
+        /* Toggle button for journal */
+        #journal-toggle {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #654321;
+            color: #FFD700;
+            padding: 8px 15px;
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 15;
+            font-weight: bold;
+        }
+        
+        .tree {
+            position: absolute;
+            width: 96px;
+            height: 128px;
+            background-color: transparent;
+        }
+        
+        .tree-healthy {
+            box-shadow: 0 0 15px #00ff00;
+        }
+         #back-home-button {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 50;
+}
+
+#return-to-menu {
+    padding: 8px 15px;
+    font-size: 1rem;
+    background-color: #795548;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: background-color 0.3s;
+}
+
+#return-to-menu:hover {
+    background-color: #5d4037;
+}
+
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <div id="nitrogen-counter">Nitrogen: 0</div>
+        
+        <button id="journal-toggle">📖 Journal</button>
+        
+        <div id="journal">
+            <h3>Alchemist's Journal</h3>
+            <p>"The unseen element that helps life grow, nurtures the plants but does not show."</p>
+            <p>Hint: Balance the nutrients in the soil to reveal the element.</p>
+            <p>Each tree needs the right balance of nitrogen. The puzzle requires creating a grid where each row and column adds up to exactly 15.</p>
+            <p>Press J or click the Journal button to toggle this view.</p>
+        </div>
+        
+        <div id="dialog-box"></div>
+        
+        <div id="puzzle-container">
+            <h2>Balance the Fertilizer</h2>
+            <p>Each tree needs the right amount of nitrogen. Select fertilizer amounts that sum to 15 across each row and column.</p>
+            
+            <div class="fertilizer-grid">
+                <div class="fertilizer-cell" data-row="0" data-col="0">0</div>
+                <div class="fertilizer-cell" data-row="0" data-col="1">0</div>
+                <div class="fertilizer-cell" data-row="0" data-col="2">0</div>
+                <div class="fertilizer-cell" data-row="1" data-col="0">0</div>
+                <div class="fertilizer-cell" data-row="1" data-col="1">0</div>
+                <div class="fertilizer-cell" data-row="1" data-col="2">0</div>
+                <div class="fertilizer-cell" data-row="2" data-col="0">0</div>
+                <div class="fertilizer-cell" data-row="2" data-col="1">0</div>
+                <div class="fertilizer-cell" data-row="2" data-col="2">0</div>
+            </div>
+            
+            <button id="check-puzzle">Check Solution</button>
+            <button id="close-puzzle">Close</button>
+        </div>
+        
+        <div id="level-complete">
+            <h2>Element Collected!</h2>
+            <div class="element-icon">N</div>
+            <p>You've discovered Nitrogen, the vital element that helps plants grow!</p>
+            <p>Nitrogen is essential for plant growth and forms 78% of Earth's atmosphere.</p>
+            <button id="continue-btn">Continue Adventure</button>
+        </div>
+        
+        <div id="controls-info">
+            Controls: Arrow keys to move, Space to interact, J to toggle journal
+        </div>
+    </div>
+    <div id="back-home-button">
+        <button id="return-to-menu">Back to Journal</button>
+    </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // Game canvas and context
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size to match container
+    canvas.width = 800;
+    canvas.height = 600;
+    
+    // Create background buffer canvas to prevent flickering
+    const bgCanvas = document.createElement('canvas');
+    bgCanvas.width = canvas.width;
+    bgCanvas.height = canvas.height;
+    const bgCtx = bgCanvas.getContext('2d');
+    
+    // Game state
+    const gameState = {
+        player: {
+            x: 400,
+            y: 300,
+            width: 32,
+            height: 48,
+            speed: 3,
+            direction: 'down',
+            isMoving: false,
+            nitrogen: 0
+        },
+        trees: [
+            { x: 150, y: 150, width: 96, height: 128, isHealthy: false, isInteractable: true },
+            
+            { x: 550, y: 150, width: 96, height: 128, isHealthy: false, isInteractable: true },
+            { x: 150, y: 400, width: 96, height: 128, isHealthy: false, isInteractable: true },
+           
+            { x: 550, y: 400, width: 96, height: 128, isHealthy: false, isInteractable: true }
+        ],
+        keysPressed: {},
+        currentDialog: "",
+        showDialog: false,
+        showPuzzle: false,
+        journalVisible: true,
+        puzzleSolved: false,
+        currentTree: null,
+        levelComplete: false,
+        decorativeElements: [] // Store static decorative elements here
+    };
+     document.getElementById('return-to-menu').addEventListener('click', function() {
+    // First save current progress before returning to menu
+    // If you haven't collected the elements yet, you might want to add logic
+    // to prompt the user that progress won't be saved
+    
+    // Redirect to the landing page
+    window.location.href = 'index.html';
+});
+    // Create tree sprites
+    function createTreeSprite(isHealthy) {
+        const treeCanvas = document.createElement('canvas');
+        treeCanvas.width = 96;
+        treeCanvas.height = 128;
+        const treeCtx = treeCanvas.getContext('2d');
+        
+        // Tree trunk
+        treeCtx.fillStyle = isHealthy ? '#8B4513' : '#6B4423';
+        treeCtx.fillRect(38, 80, 20, 48);
+        
+        // Tree foliage - different colors based on health
+        treeCtx.fillStyle = isHealthy ? '#2ECC40' : '#85734B';
+        
+        // Draw tree crown
+        treeCtx.beginPath();
+        treeCtx.moveTo(48, 10); // top of the tree
+        treeCtx.lineTo(86, 90); // bottom right
+        treeCtx.lineTo(10, 90); // bottom left
+        treeCtx.closePath();
+        treeCtx.fill();
+        
+        // Add more foliage details
+        treeCtx.fillStyle = isHealthy ? '#3DB34A' : '#706B49';
+        treeCtx.beginPath();
+        treeCtx.arc(48, 50, 30, 0, Math.PI * 2);
+        treeCtx.fill();
+        
+        // Add highlights/lowlights
+        if (isHealthy) {
+            // Add some fruit or flowers to healthy trees
+            treeCtx.fillStyle = '#FF5733';
+            for (let i = 0; i < 5; i++) {
+                const fruitX = 30 + Math.random() * 36;
+                const fruitY = 30 + Math.random() * 40;
+                treeCtx.beginPath();
+                treeCtx.arc(fruitX, fruitY, 3, 0, Math.PI * 2);
+                treeCtx.fill();
+            }
+        } else {
+            // Add some brown spots to unhealthy trees
+            treeCtx.fillStyle = '#704214';
+            for (let i = 0; i < 8; i++) {
+                const spotX = 20 + Math.random() * 56;
+                const spotY = 30 + Math.random() * 50;
+                treeCtx.beginPath();
+                treeCtx.arc(spotX, spotY, 4, 0, Math.PI * 2);
+                treeCtx.fill();
+            }
+        }
+        
+        return treeCanvas;
+    }
+    
+    // Player sprite placeholder - now a more colorful character
+    function createPlayerSprite(direction) {
+        const playerCanvas = document.createElement('canvas');
+        playerCanvas.width = 32;
+        playerCanvas.height = 48;
+        const playerCtx = playerCanvas.getContext('2d');
+        
+        // Body
+        playerCtx.fillStyle = '#1E90FF';
+        playerCtx.fillRect(8, 18, 16, 22);
+        
+        // Head
+        playerCtx.fillStyle = '#FFD700';
+        playerCtx.beginPath();
+        playerCtx.arc(16, 12, 8, 0, Math.PI * 2);
+        playerCtx.fill();
+        
+        // Arms
+        playerCtx.fillStyle = '#1E90FF';
+        
+        if (direction === 'left') {
+            playerCtx.fillRect(4, 20, 10, 6);
+        } else if (direction === 'right') {
+            playerCtx.fillRect(18, 20, 10, 6);
+        } else {
+            playerCtx.fillRect(4, 20, 6, 6);
+            playerCtx.fillRect(22, 20, 6, 6);
+        }
+        
+        // Legs
+        playerCtx.fillStyle = '#4169E1';
+        playerCtx.fillRect(10, 40, 5, 8);
+        playerCtx.fillRect(17, 40, 5, 8);
+        
+        // Eyes
+        playerCtx.fillStyle = '#000000';
+        
+        if (direction === 'left') {
+            playerCtx.fillRect(12, 10, 3, 2);
+            playerCtx.fillRect(18, 10, 3, 2);
+        } else if (direction === 'right') {
+            playerCtx.fillRect(11, 10, 3, 2);
+            playerCtx.fillRect(17, 10, 3, 2);
+        } else if (direction === 'up') {
+            playerCtx.fillRect(12, 9, 3, 2);
+            playerCtx.fillRect(18, 9, 3, 2);
+        } else {
+            playerCtx.fillRect(12, 11, 3, 2);
+            playerCtx.fillRect(18, 11, 3, 2);
+        }
+        
+        return playerCanvas;
+    }
+    
+    // Create player sprites for each direction
+    const playerSprite = {
+        up: createPlayerSprite('up'),
+        down: createPlayerSprite('down'),
+        left: createPlayerSprite('left'),
+        right: createPlayerSprite('right')
+    };
+    
+    // Tree sprites
+    const treeSprite = {
+        unhealthy: createTreeSprite(false),
+        healthy: createTreeSprite(true)
+    };
+    
+    // Initialize decorative elements
+    function initializeDecorativeElements() {
+        // Clear any existing elements
+        gameState.decorativeElements = [];
+        
+        // Add grass tufts
+        for (let i = 0; i < 150; i++) {
+            gameState.decorativeElements.push({
+                type: 'grass',
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                width: 1 + Math.random() * 3,
+                height: 3 + Math.random() * 7
+            });
+        }
+        
+        // Add rocks and flowers
+        for (let i = 0; i < 20; i++) {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height;
+            const size = 3 + Math.random() * 7;
+            
+            // Check if this position overlaps with trees or starting player position
+            let overlaps = false;
+            const safeRadius = 50; // Distance from player start position
+            
+            if (Math.sqrt(Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)) < safeRadius) {
+                overlaps = true;
+            }
+            
+            if (!overlaps) {
+                gameState.decorativeElements.push({
+                    type: Math.random() > 0.5 ? 'rock' : 'flower',
+                    x: x,
+                    y: y,
+                    size: size
+                });
+            }
+        }
+    }
+    
+    // Draw the static background once
+    function drawStaticBackground() {
+        // Base ground
+        bgCtx.fillStyle = '#8cc751';
+        bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+        
+        // Draw decorative elements
+        for (const element of gameState.decorativeElements) {
+            if (element.type === 'grass') {
+                bgCtx.fillStyle = '#7CB342';
+                bgCtx.fillRect(element.x, element.y, element.width, element.height);
+            } else if (element.type === 'rock') {
+                bgCtx.fillStyle = '#93867F';
+                bgCtx.beginPath();
+                bgCtx.arc(element.x, element.y, element.size, 0, Math.PI * 2);
+                bgCtx.fill();
+            } else if (element.type === 'flower') {
+                // Flower petals
+                bgCtx.fillStyle = '#FFFFFF';
+                bgCtx.beginPath();
+                bgCtx.arc(element.x, element.y, element.size/2, 0, Math.PI * 2);
+                bgCtx.fill();
+                
+                // Flower center
+                bgCtx.fillStyle = '#FFD700';
+                bgCtx.beginPath();
+                bgCtx.arc(element.x, element.y, element.size/4, 0, Math.PI * 2);
+                bgCtx.fill();
+            }
+        }
+    }
+    
+    // Event listeners for keyboard input
+    document.addEventListener('keydown', function(e) {
+        gameState.keysPressed[e.key] = true;
+        
+        // Toggle journal with J key
+        if (e.key === 'j' || e.key === 'J') {
+            toggleJournal();
+        }
+        
+        // Interact with space
+        if (e.key === ' ' && !gameState.showPuzzle && !gameState.levelComplete) {
+            interactWithNearbyObject();
+        }
+    });
+    
+    document.addEventListener('keyup', function(e) {
+        gameState.keysPressed[e.key] = false;
+    });
+    
+    // Journal toggle handler
+    function toggleJournal() {
+        const journal = document.getElementById('journal');
+        const journalToggle = document.getElementById('journal-toggle');
+        
+        gameState.journalVisible = !gameState.journalVisible;
+        
+        if (gameState.journalVisible) {
+            journal.style.display = 'block';
+            journalToggle.style.display = 'none';
+        } else {
+            journal.style.display = 'none';
+            journalToggle.style.display = 'block';
+        }
+    }
+    
+    // Journal toggle button click handler
+    document.getElementById('journal-toggle').addEventListener('click', toggleJournal);
+    
+    // Update player position based on input
+    function updatePlayerPosition() {
+        const player = gameState.player;
+        let isMoving = false;
+        let nextX = player.x;
+        let nextY = player.y;
+        
+        if (gameState.keysPressed['ArrowUp']) {
+            nextY -= player.speed;
+            player.direction = 'up';
+            isMoving = true;
+        }
+        if (gameState.keysPressed['ArrowDown']) {
+            nextY += player.speed;
+            player.direction = 'down';
+            isMoving = true;
+        }
+        if (gameState.keysPressed['ArrowLeft']) {
+            nextX -= player.speed;
+            player.direction = 'left';
+            isMoving = true;
+        }
+        if (gameState.keysPressed['ArrowRight']) {
+            nextX += player.speed;
+            player.direction = 'right';
+            isMoving = true;
+        }
+        
+        player.isMoving = isMoving;
+        
+        // Check for collisions with game boundaries
+        if (nextX >= 0 && nextX <= canvas.width - player.width) {
+            player.x = nextX;
+        }
+        if (nextY >= 0 && nextY <= canvas.height - player.height) {
+            player.y = nextY;
+        }
+        
+        // Check for collisions with trees
+        for (const tree of gameState.trees) {
+            // Expand collision box to make it slightly smaller than visual size
+            const treeCollisionBox = {
+                x: tree.x + 15,
+                y: tree.y + 70,  // Lower part (trunk area)
+                width: tree.width - 30,
+                height: tree.height - 70
+            };
+            
+            if (rectsIntersect({x: nextX, y: nextY, width: player.width, height: player.height}, 
+                              treeCollisionBox)) {
+                // Revert to previous position if collision detected
+                if (nextX !== player.x) player.x = player.x;
+                if (nextY !== player.y) player.y = player.y;
+                break;
+            }
+        }
+    }
+    
+    // Simple collision detection helper
+    function rectsIntersect(rect1, rect2) {
+        return rect1.x < rect2.x + rect2.width &&
+               rect1.x + rect1.width > rect2.x &&
+               rect1.y < rect2.y + rect2.height &&
+               rect1.y + rect1.height > rect2.y;
+    }
+    
+    // Check if player is near an interactable object
+    function interactWithNearbyObject() {
+        const player = gameState.player;
+        const interactionDistance = 50; // Distance for interaction
+        
+        // Check if player is near a tree
+        for (let i = 0; i < gameState.trees.length; i++) {
+            const tree = gameState.trees[i];
+            
+            if (!tree.isInteractable) continue;
+            
+            const dx = (player.x + player.width/2) - (tree.x + tree.width/2);
+            const dy = (player.y + player.height/2) - (tree.y + tree.height/2);
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            
+            if (distance < interactionDistance) {
+                gameState.currentTree = i;
+                if (!tree.isHealthy) {
+                    showDialog("This tree needs nitrogen balance. Do you want to help?");
+                } else {
+                    showDialog("This tree is already healthy, thanks to your help!");
+                }
+                return;
+            }
+        }
+    }
+    
+    // Show dialog box
+    function showDialog(text) {
+        const dialogBox = document.getElementById('dialog-box');
+        dialogBox.textContent = text;
+        dialogBox.style.display = 'block';
+        gameState.showDialog = true;
+        gameState.currentDialog = text;
+        
+        // Add continue prompt after short delay
+        setTimeout(() => {
+            dialogBox.textContent = text + " (Press SPACE to continue)";
+        }, 1000);
+        
+        // Set up listener for continuing dialog
+        function continueDialog(e) {
+            if (e.key === ' ') {
+                dialogBox.style.display = 'none';
+                gameState.showDialog = false;
+                document.removeEventListener('keydown', continueDialog);
+                
+                // Open puzzle if the dialog was for tree interaction
+                if (gameState.currentTree !== null && !gameState.trees[gameState.currentTree].isHealthy) {
+                    openPuzzle();
+                } else {
+                    gameState.currentTree = null;
+                }
+            }
+        }
+        
+        document.addEventListener('keydown', continueDialog);
+    }
+    
+    // Open puzzle interface
+    function openPuzzle() {
+        const puzzleContainer = document.getElementById('puzzle-container');
+        puzzleContainer.style.display = 'block';
+        gameState.showPuzzle = true;
+        
+        // Reset puzzle grid
+        const cells = document.querySelectorAll('.fertilizer-cell');
+        cells.forEach(cell => {
+            cell.textContent = '0';
+            cell.classList.remove('selected');
+        });
+    }
+    
+    // Set up puzzle grid cell click handlers
+    const cells = document.querySelectorAll('.fertilizer-cell');
+    cells.forEach(cell => {
+        cell.addEventListener('click', function() {
+            // Cycle through 1-9 on click
+            let currentValue = parseInt(this.textContent);
+            currentValue = (currentValue % 9) + 1;
+            this.textContent = currentValue;
+            
+            // Visual feedback
+            this.classList.add('selected');
+            setTimeout(() => {
+                this.classList.remove('selected');
+            }, 200);
+        });
+    });
+    
+    // Check puzzle solution
+    document.getElementById('check-puzzle').addEventListener('click', function() {
+        const grid = [];
+        for (let r = 0; r < 3; r++) {
+            grid[r] = [];
+            for (let c = 0; c < 3; c++) {
+                const cell = document.querySelector(`.fertilizer-cell[data-row="${r}"][data-col="${c}"]`);
+                grid[r][c] = parseInt(cell.textContent);
+            }
+        }
+        
+        // Check if rows and columns sum to 15
+        let correct = true;
+        
+       
+        
+        // Check rows
+        if (correct) {
+            for (let r = 0; r < 3; r++) {
+                let rowSum = grid[r][0] + grid[r][1] + grid[r][2];
+                if (rowSum !== 15) {
+                    correct = false;
+                    break;
+                }
+            }
+        }
+        
+        // Check columns
+        if (correct) {
+            for (let c = 0; c < 3; c++) {
+                let colSum = grid[0][c] + grid[1][c] + grid[2][c];
+                if (colSum !== 15) {
+                    correct = false;
+                    break;
+                }
+            }
+        }
+        
+        if (correct) {
+            completePuzzle();
+        } else {
+            showDialog("That's not right. Each row and column must sum to exactly 15, using each number 1-9 exactly once.");
+        }
+    });
+    
+    // Close puzzle without completing
+    document.getElementById('close-puzzle').addEventListener('click', function() {
+        document.getElementById('puzzle-container').style.display = 'none';
+        gameState.showPuzzle = false;
+        gameState.currentTree = null;
+    });
+    
+    // Complete the puzzle
+    function completePuzzle() {
+        document.getElementById('puzzle-container').style.display = 'none';
+        gameState.showPuzzle = false;
+        
+        // Mark the current tree as healthy
+        if (gameState.currentTree !== null) {
+            gameState.trees[gameState.currentTree].isHealthy = true;
+            gameState.player.nitrogen += 5;
+            updateNitrogenCounter();
+            
+            // Check if all trees are healthy
+            let allHealthy = true;
+            for (const tree of gameState.trees) {
+                if (!tree.isHealthy) {
+                    allHealthy = false;
+                    break;
+                }
+            }
+            
+            if (allHealthy && !gameState.puzzleSolved) {
+                gameState.puzzleSolved = true;
+                setTimeout(() => {
+                    completeLevelSequence();
+                }, 1000);
+            } else {
+                showDialog("Great job! You've balanced the nitrogen for this tree.");
+            }
+        }
+    }
+    
+    // Update nitrogen counter
+    function updateNitrogenCounter() {
+        document.getElementById('nitrogen-counter').textContent = `Nitrogen: ${gameState.player.nitrogen}`;
+    }
+    
+    // Complete level sequence
+    function completeLevelSequence() {
+        document.getElementById('level-complete').style.display = 'block';
+        gameState.levelComplete = true;
+    }
+    
+    // Continue button click handler
+    document.getElementById('continue-btn').addEventListener('click', function() {
+        
+        showDialog("Congratulations! You've completed the nitrogen quest!");
+        window.location.href = "index5.html";
+    });
+    
+    // Main game loop
+    function gameLoop() {
+        // Start by drawing the static background from our buffer
+        ctx.drawImage(bgCanvas, 0, 0);
+        
+        // Only update player position if not in dialog, puzzle or level complete screens
+        if (!gameState.showDialog && !gameState.showPuzzle && !gameState.levelComplete) {
+            updatePlayerPosition();
+        }
+        
+        // Draw trees
+        for (const tree of gameState.trees) {
+            const treeImage = tree.isHealthy ? treeSprite.healthy : treeSprite.unhealthy;
+            ctx.drawImage(treeImage, tree.x, tree.y, tree.width, tree.height);
+            
+            // Add glow effect to healthy trees
+            if (tree.isHealthy) {
+                ctx.save();
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.arc(tree.x + tree.width/2, tree.y + tree.height/2, 
+                        tree.width/2, 0, Math.PI * 2);
+                ctx.fillStyle = '#00ff00';
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+        
+        // Draw player
+        ctx.drawImage(playerSprite[gameState.player.direction], 
+            gameState.player.x, gameState.player.y, 
+            gameState.player.width, gameState.player.height);
+        
+        // Draw interaction indicator for nearby trees
+        if (!gameState.showDialog && !gameState.showPuzzle && !gameState.levelComplete) {
+            const player = gameState.player;
+            const interactionDistance = 50;
+            
+            for (const tree of gameState.trees) {
+                if (!tree.isInteractable || tree.isHealthy) continue;
+                
+                const dx = (player.x + player.width/2) - (tree.x + tree.width/2);
+                const dy = (player.y + player.height/2) - (tree.y + tree.height/2);
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                
+                if (distance < interactionDistance) {
+                    // Draw indicator above tree
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '16px Courier New';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Press SPACE', tree.x + tree.width/2, tree.y - 10);
+                    
+                    // Draw indicator circle
+                    ctx.beginPath();
+                    ctx.arc(tree.x + tree.width/2, tree.y + tree.height/2, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fill();
+                }
+            }
+        }
+        
+        // Request next frame
+        requestAnimationFrame(gameLoop);
+    }
+    
+    // Initialize background elements and draw static background
+    initializeDecorativeElements();
+    drawStaticBackground();
+    
+    // Start the game loop
+    gameLoop();
+});
+</script>

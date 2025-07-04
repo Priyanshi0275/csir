@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Quest: Coastal Cave (Calcium)</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Courier New', monospace;
+            color: #fff;
+            overflow: hidden;
+        }
+         #back-home-button {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 50;
+}
+
+#return-to-menu {
+    padding: 8px 15px;
+    font-size: 1rem;
+    background-color: #795548;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: background-color 0.3s;
+}
+
+#return-to-menu:hover {
+    background-color: #5d4037;
+}
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 4px solid #333;
+            overflow: hidden;
+        }
+        
+        #game-screen {
+            width: 100%;
+            height: 100%;
+            background-color: #222;
+            position: relative;
+        }
+        
+        #intro-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        
+        #intro-text {
+            width: 80%;
+            font-size: 18px;
+            line-height: 1;
+            margin-bottom: 20px;
+        }
+        
+        .pixel-button {
+            background-color: #444;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #23dd77;
+            box-shadow: 3px 3px 0px #42f153;
+        }
+        
+        .pixel-button:hover {
+            background-color: #555;
+        }
+        
+        .pixel-button:active {
+            box-shadow: 1px 1px 0px #7de451;
+            transform: translate(2px, 2px);
+        }
+        
+        #player {
+            width: 32px;
+            height: 48px;
+            position: absolute;
+            background-color: #5d9fff;
+            bottom: 80px;
+            left: 100px;
+            z-index: 5;
+        }
+        
+        .cave {
+            width: 100%;
+            height: 100%;
+            background-color: #333344;
+            position: relative;
+        }
+        
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background-color: #886644;
+        }
+        
+        .cave-wall {
+            position: absolute;
+            background-color: #554466;
+        }
+        
+        .stalactite {
+            position: absolute;
+            top: 0;
+            width: 20px;
+            background-color: #8a7f8d;
+        }
+        
+        .stalagmite {
+            position: absolute;
+            bottom: 80px;
+            width: 20px;
+            background-color: #8a7f8d;
+        }
+        
+        .collectible {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background-repeat: no-repeat;
+            background-size: contain;
+            cursor: pointer;
+        }
+        
+        .mineral {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            background-color: #ccccdd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .shell {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: #eeddcc;
+            border-radius: 50%;
+            cursor: grab;
+        }
+        
+        .shell.selected {
+            border: 2px solid yellow;
+        }
+        
+        #journal {
+            position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 60px; /* Increased width to fit the word "Journal" */
+    height: 40px;
+    background-color: #aa8866;
+    border: 2px solid #886644;
+    cursor: pointer;
+    z-index: 6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 14px; /* Adjusted font size to better fit */
+    color: #fff; /* Optional: white text for contrast */
+    border-radius: 6px; /* Optional: rounded corners */
+    text-align: center;
+    padding: 0 5px; /* Some padding to prevent text from touching edges */
+    box-sizing: border-box; /* Make padding stay within the set width */
+        }
+        
+        #journal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 400px;
+            background-color: #ddccaa;
+            border: 4px solid #886644;
+            padding: 20px;
+            color: #442200;
+            z-index: 20;
+            display: none;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+        }
+        
+        #close-journal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 24px;
+        }
+        
+        #dialog-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border: 2px solid #aaa;
+            display: none;
+            z-index: 7;
+        }
+        
+        #inventory {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            display: flex;
+            z-index: 6;
+        }
+        
+        .inventory-slot {
+            width: 40px;
+            height: 40px;
+            background-color: #333;
+            border: 2px solid #555;
+            margin-right: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            color: #fff;
+        }
+        
+        #success-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+        }
+        
+        .calcium-element {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #ffdd88;
+            text-shadow: 0 0 10px #ffaa00;
+        }
+        
+        .pattern-line {
+            position: absolute;
+            background-color: #fff;
+            height: 2px;
+            opacity: 0.7;
+            z-index: 4;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="game-screen">
+            <div class="cave">
+                <div class="stalactite" style="left: 50px; height: 100px;"></div>
+                <div class="stalactite" style="left: 150px; height: 150px;"></div>
+                <div class="stalactite" style="left: 300px; height: 80px;"></div>
+                <div class="stalactite" style="left: 450px; height: 120px;"></div>
+                <div class="stalactite" style="left: 600px; height: 90px;"></div>
+                <div class="stalactite" style="left: 720px; height: 140px;"></div>
+                <div class="stalagmite" style="left: 100px; height: 60px;"></div>
+                <div class="stalagmite" style="left: 220px; height: 80px;"></div>
+                <div class="stalagmite" style="left: 380px; height: 70px;"></div>
+                <div class="stalagmite" style="left: 520px; height: 90px;"></div>
+                <div class="stalagmite" style="left: 650px; height: 50px;"></div>
+                
+                <div class="cave-wall" style="top: 0; left: 0; width: 30px; height: 100%;"></div>
+                <div class="cave-wall" style="top: 0; right: 0; width: 30px; height: 100%;"></div>
+                
+                <!-- Minerals -->
+                <div class="mineral" id="mineral1" data-pattern="spiral" style="top: 200px; left: 120px;"></div>
+                <div class="mineral" id="mineral2" data-pattern="lines" style="top: 300px; left: 350px;"></div>
+                <div class="mineral" id="mineral3" data-pattern="dots" style="top: 220px; left: 600px;"></div>
+                
+                <!-- Shells -->
+                <div class="shell" id="shell1" data-pattern="spiral" style="top: 400px; left: 200px;"></div>
+                <div class="shell" id="shell2" data-pattern="dots" style="top: 450px; left: 400px;"></div>
+                <div class="shell" id="shell3" data-pattern="lines" style="top: 420px; left: 600px;"></div>
+                
+                <div class="ground"></div>
+
+                <!-- Pattern lines for connections -->
+                <div class="pattern-line" id="line1"></div>
+                <div class="pattern-line" id="line2"></div>
+                <div class="pattern-line" id="line3"></div>
+            </div>
+            
+            <div id="player"></div>
+            
+            <div id="journal">Journal</div>
+            
+            <div id="journal-content">
+                <div id="close-journal">×</div>
+                <h2>Alchemist's Journal - Page 5</h2>
+                <p><i>The bones of the earth lie within the tears of the sea,<br>
+                Where shells and stones meet in harmony.</i></p>
+                <p>The fifth element we seek is calcium, found abundantly in limestone caves near the coast.</p>
+                <p>To unlock its power, match the patterns of the shells with their corresponding minerals. The natural patterns must align as nature intended.</p>
+                <p>Look closely at each shell's unique pattern and find the mineral formation that bears the same mark of nature's design.</p>
+                <hr>
+                <p><b>Hint:</b> Examine the intricate patterns on each shell. When held close to its matching mineral, their common design will become clear.</p>
+            </div>
+            
+            <div id="dialog-box"></div>
+            
+            <div id="inventory">
+                <div class="inventory-slot" id="calcium-slot">Ca</div>
+            </div>
+        </div>
+        
+        <div id="intro-screen">
+            <h1>Element Quest: Coastal Cave</h1>
+            <div id="intro-text">
+                <p>As Samir, you've arrived at a mysterious coastal cave in search of calcium, the fifth element mentioned in the alchemist's journal.</p>
+                <p>According to the journal, you need to match seashells to their corresponding mineral formations based on their natural patterns.</p>
+                <p><b>Instructions:</b></p>
+                <p>1. Click and drag seashells to the matching mineral formations</p>
+                <p>2. When all three matches are correctly made, you'll unlock calcium</p>
+                <p>3. Use the 'J' button in the top right to consult the journal at any time</p>
+            </div>
+            <button class="pixel-button" id="start-game">Begin Quest</button>
+        </div>
+        
+        <div id="success-screen">
+            <div class="calcium-element">Ca</div>
+            <h1>Element Discovered: Calcium!</h1>
+            <p>You have successfully matched the patterns and collected calcium.</p>
+            <p>The element has been added to your inventory!</p>
+            <button class="pixel-button" id="continue-btn">Go to next level</button>
+        </div>
+    </div>
+<div id="back-home-button">
+        <button id="return-to-menu">Back to Journal</button>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game elements
+            const gameScreen = document.getElementById('game-screen');
+            const introScreen = document.getElementById('intro-screen');
+            const startGameBtn = document.getElementById('start-game');
+            const player = document.getElementById('player');
+            const journal = document.getElementById('journal');
+            const journalContent = document.getElementById('journal-content');
+            const closeJournal = document.getElementById('close-journal');
+            const dialogBox = document.getElementById('dialog-box');
+            const successScreen = document.getElementById('success-screen');
+            const continueBtn = document.getElementById('continue-btn');
+            const calciumSlot = document.getElementById('calcium-slot');
+            
+            // Shells and minerals
+            const shells = document.querySelectorAll('.shell');
+            const minerals = document.querySelectorAll('.mineral');
+            const patternLines = document.querySelectorAll('.pattern-line');
+            
+            // Game state
+            let selectedShell = null;
+            let correctMatches = 0;
+            let gameStarted = false;
+            let calciumCollected = false;
+            
+            // Start the game
+            startGameBtn.addEventListener('click', function() {
+                introScreen.style.display = 'none';
+                gameStarted = true;
+                showDialog("I've arrived at the coastal cave. According to the journal, I need to match shells to minerals based on their patterns.");
+                
+                // Add textures and patterns to minerals and shells
+                applyPatterns();
+            });
+            
+            // Apply visual patterns to shells and minerals
+            function applyPatterns() {
+                minerals.forEach(mineral => {
+                    const pattern = mineral.dataset.pattern;
+                    if (pattern === 'spiral') {
+                        mineral.style.backgroundImage = 'radial-gradient(circle, #ccccdd 10%, #aaaacc 40%, #ccccdd 60%)';
+                    } else if (pattern === 'lines') {
+                        mineral.style.backgroundImage = 'linear-gradient(90deg, #ccccdd 30%, #aaaacc 33%, #ccccdd 36%, #aaaacc 39%, #ccccdd 42%, #aaaacc 45%, #ccccdd 48%)';
+                    } else if (pattern === 'dots') {
+                        mineral.style.backgroundImage = 'radial-gradient(circle at 20% 20%, #ffffff 0%, #ffffff 5%, #ccccdd 6%, radial-gradient(circle at 50% 50%, #ffffff 0%, #ffffff 5%, #ccccdd 6%, radial-gradient(circle at 80% 80%, #ffffff 0%, #ffffff 5%, #ccccdd 6%)))';
+                        mineral.style.backgroundColor = '#ccccdd';
+                    }
+                });
+                
+                shells.forEach(shell => {
+                    const pattern = shell.dataset.pattern;
+                    if (pattern === 'spiral') {
+                        shell.style.backgroundImage = 'radial-gradient(circle, #eeddcc 10%, #ddbba9 40%, #eeddcc 60%)';
+                    } else if (pattern === 'lines') {
+                        shell.style.backgroundImage = 'linear-gradient(90deg, #eeddcc 30%, #ddbba9 33%, #eeddcc 36%, #ddbba9 39%, #eeddcc 42%, #ddbba9 45%, #eeddcc 48%)';
+                    } else if (pattern === 'dots') {
+                        shell.style.backgroundImage = 'radial-gradient(circle at 20% 20%, #ffffff 0%, #ffffff 5%, #eeddcc 6%, radial-gradient(circle at 50% 50%, #ffffff 0%, #ffffff 5%, #eeddcc 6%, radial-gradient(circle at 80% 80%, #ffffff 0%, #ffffff 5%, #eeddcc 6%)))';
+                        shell.style.backgroundColor = '#eeddcc';
+                    }
+                    shell.style.borderRadius = '50% 50% 50% 20%';
+                });
+            }
+            
+            // Shell selection and dragging logic
+            shells.forEach(shell => {
+                shell.addEventListener('mousedown', function(e) {
+                    if (!gameStarted) return;
+                    
+                    selectedShell = this;
+                    shells.forEach(s => s.classList.remove('selected'));
+                    this.classList.add('selected');
+                    
+                    // Make shell follow cursor
+                    const moveShell = function(e) {
+                        if (selectedShell) {
+                            const rect = gameScreen.getBoundingClientRect();
+                            const x = e.clientX - rect.left - (selectedShell.offsetWidth / 2);
+                            const y = e.clientY - rect.top - (selectedShell.offsetHeight / 2);
+                            
+                            // Keep shell within game boundaries
+                            const maxX = gameScreen.offsetWidth - selectedShell.offsetWidth;
+                            const maxY = gameScreen.offsetHeight - selectedShell.offsetHeight;
+                            
+                            selectedShell.style.left = Math.max(0, Math.min(maxX, x)) + 'px';
+                            selectedShell.style.top = Math.max(0, Math.min(maxY, y)) + 'px';
+                        }
+                    };
+                    
+                    document.addEventListener('mousemove', moveShell);
+                    
+                    document.addEventListener('mouseup', function cleanup() {
+                        if (selectedShell) {
+                            document.removeEventListener('mousemove', moveShell);
+                            checkMatch();
+                            selectedShell = null;
+                        }
+                        document.removeEventListener('mouseup', cleanup);
+                    });
+                });
+            });
+            document.getElementById('return-to-menu').addEventListener('click', function() {
+    // First save current progress before returning to menu
+    // If you haven't collected the elements yet, you might want to add logic
+    // to prompt the user that progress won't be saved
+    
+    // Redirect to the landing page
+    window.location.href = 'index.html';
+});
+            // Check if shell is placed on correct mineral
+            function checkMatch() {
+                if (!selectedShell) return;
+                
+                minerals.forEach((mineral, index) => {
+                    const mineralRect = mineral.getBoundingClientRect();
+                    const shellRect = selectedShell.getBoundingClientRect();
+                    
+                    // Check if shell overlaps with mineral
+                    if (!(shellRect.right < mineralRect.left || 
+                          shellRect.left > mineralRect.right || 
+                          shellRect.bottom < mineralRect.top || 
+                          shellRect.top > mineralRect.bottom)) {
+                        
+                        // Check if patterns match
+                        if (selectedShell.dataset.pattern === mineral.dataset.pattern) {
+                            // Correct match
+                            showDialog("That's a match! The patterns align perfectly.");
+                            
+                            // Position shell in center of mineral
+                            const centerX = parseInt(mineral.style.left) + (mineral.offsetWidth - selectedShell.offsetWidth) / 2;
+                            const centerY = parseInt(mineral.style.top) + (mineral.offsetHeight - selectedShell.offsetHeight) / 2;
+                            selectedShell.style.left = centerX + 'px';
+                            selectedShell.style.top = centerY + 'px';
+                            
+                            // Disable further dragging
+                            selectedShell.style.cursor = 'default';
+                            selectedShell.removeEventListener('mousedown', () => {});
+                            
+                            // Show connecting line
+                            const line = patternLines[index];
+                            line.style.display = 'block';
+                            line.style.left = (centerX + selectedShell.offsetWidth / 2) + 'px';
+                            line.style.top = (centerY + selectedShell.offsetHeight / 2) + 'px';
+                            line.style.width = '2px';
+                            line.style.height = '0px';
+                            
+                            // Animate the line
+                            let height = 0;
+                            const targetHeight = Math.abs(centerY - (parseInt(mineral.style.top) + mineral.offsetHeight / 2));
+                            const interval = setInterval(() => {
+                                height += 2;
+                                line.style.height = height + 'px';
+                                if (height >= targetHeight) {
+                                    clearInterval(interval);
+                                    // Add glow effect to indicate connection
+                                    line.style.boxShadow = '0 0 5px #fff, 0 0 10px #fff';
+                                    mineral.style.boxShadow = '0 0 10px #ffaa00';
+                                    selectedShell.style.boxShadow = '0 0 10px #ffaa00';
+                                }
+                            }, 20);
+                            
+                            correctMatches++;
+                            
+                            // Check if all matches are complete
+                            if (correctMatches === 3) {
+                                setTimeout(completeLevel, 1500);
+                            }
+                        } else {
+                            // Incorrect match
+                            showDialog("That doesn't seem right. The patterns don't match.");
+                            
+                            // Return shell to original position
+                            const originalX = Math.random() * 400 + 200;
+                            const originalY = Math.random() * 100 + 400;
+                            selectedShell.style.left = originalX + 'px';
+                            selectedShell.style.top = originalY + 'px';
+                        }
+                        
+                        selectedShell.classList.remove('selected');
+                        return;
+                    }
+                });
+            }
+            
+            // Level completion
+            function completeLevel() {
+                showDialog("All patterns matched! I can sense the calcium element forming...");
+                
+                // Add visual effects - cave glowing
+                document.querySelectorAll('.mineral').forEach(mineral => {
+                    mineral.style.boxShadow = '0 0 20px #ffff00';
+                });
+                
+                // Show success screen after a delay
+                setTimeout(() => {
+                    successScreen.style.display = 'flex';
+                    calciumCollected = true;
+                    calciumSlot.style.backgroundColor = '#ffdd88';
+                    calciumSlot.style.color = '#000';
+                    calciumSlot.style.fontWeight = 'bold';
+                }, 2000);
+            }
+            
+            // Continue journey button
+            continueBtn.addEventListener('click', function() {
+                window.location.href = "index6.html";
+            });
+            
+            // Journal interaction
+            journal.addEventListener('click', function() {
+                journalContent.style.display = 'block';
+            });
+            
+            closeJournal.addEventListener('click', function() {
+                journalContent.style.display = 'none';
+            });
+            
+            // Show dialog message
+            function showDialog(text) {
+                dialogBox.textContent = text;
+                dialogBox.style.display = 'block';
+                
+                // Hide dialog after a few seconds
+                setTimeout(() => {
+                    dialogBox.style.display = 'none';
+                }, 4000);
+            }
+            
+            // Simple player movement (left-right)
+            let playerX = 100;
+            const playerSpeed = 5;
+            let movingLeft = false;
+            let movingRight = false;
+            
+            document.addEventListener('keydown', function(e) {
+                if (!gameStarted) return;
+                
+                if (e.key === 'ArrowLeft') {
+                    movingLeft = true;
+                } else if (e.key === 'ArrowRight') {
+                    movingRight = true;
+                } else if (e.key === 'j' || e.key === 'J') {
+                    journalContent.style.display = journalContent.style.display === 'block' ? 'none' : 'block';
+                }
+            });
+            
+            document.addEventListener('keyup', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    movingLeft = false;
+                } else if (e.key === 'ArrowRight') {
+                    movingRight = false;
+                }
+            });
+            
+            // Game loop
+            function gameLoop() {
+                if (gameStarted) {
+                    if (movingLeft) {
+                        playerX -= playerSpeed;
+                        if (playerX < 30) playerX = 30;
+                    }
+                    if (movingRight) {
+                        playerX += playerSpeed;
+                        if (playerX > gameScreen.offsetWidth - player.offsetWidth - 30) {
+                            playerX = gameScreen.offsetWidth - player.offsetWidth - 30;
+                        }
+                    }
+                    
+                    player.style.left = playerX + 'px';
+                }
+                
+                requestAnimationFrame(gameLoop);
+            }
+            
+            // Start game loop
+            gameLoop();
+        });
+    </script>
+</body>
+</html>
