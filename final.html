@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Collection Game - Final Assembly</title>
+    <style>
+/* Base styling */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+   
+    font-family: 'Courier New', monospace;
+    background-color: #000;
+    color: #fff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* Header styling */
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-top: 20px;
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: #4caf50;
+    margin-bottom: 0.5rem;
+}
+
+.journal-note {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left: 4px solid #4caf50;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    font-style: italic;
+    border-radius: 0 8px 8px 0;
+    max-width: 800px;
+    margin: 0 auto 2rem;
+}
+
+/* Game container */
+#game-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background-color: #000;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    padding-bottom: 50px;
+}
+
+#game-scene {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Elements collection */
+.collected-elements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+}
+
+.element {
+    width: 100px;
+    height: 100px;
+    background-color: #212121;
+    border: 2px solid #5d4037;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.element.dragging {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
+    opacity: 0.7;
+}
+
+.element-symbol {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #4caf50;
+}
+
+.element-name {
+    font-size: 0.8rem;
+    text-align: center;
+    color: white;
+}
+
+/* Periodic table */
+.periodic-table {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 1rem;
+    padding: 1.5rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+}
+
+.element-slot {
+    width: 100px;
+    height: 100px;
+    border: 2px dashed #5d4037;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(76, 175, 80, 0.1);
+    transition: all 0.3s ease;
+}
+
+.element-slot.highlight {
+    background-color: rgba(76, 175, 80, 0.3);
+    border-color: #8d6e63;
+}
+
+.element-slot.filled {
+    border-style: solid;
+    background-color: #212121;
+}
+
+.element-info {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+}
+
+/* Usage matching */
+.usage-matching {
+    margin-top: 2rem;
+    display: none;
+}
+
+.usage-title {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #4caf50;
+}
+
+.usage-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.usage-card {
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.usage-element {
+    font-weight: bold;
+    color: #4caf50;
+}
+
+.usage-description {
+    font-size: 0.9rem;
+}
+
+.usage-input {
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #5d4037;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    width: 100%;
+}
+
+/* Buttons */
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #4caf50;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+}
+
+.btn-success {
+    background-color: #4caf50;
+    color: white;
+    display: none;
+}
+
+.btn-success:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+}
+
+/* Completion message */
+.completion-message {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+    background-color: rgba(76, 175, 80, 0.1);
+    border-radius: 5px;
+    margin-top: 2rem;
+    animation: fadeIn 1s ease;
+}
+
+.completion-title {
+    font-size: 2rem;
+    color: #4caf50;
+    margin-bottom: 1rem;
+}
+
+.element-icon {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    margin: 0 5px;
+    vertical-align: middle;
+    border-radius: 5px;
+    background-color: #212121;
+    color: #4caf50;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+.endgame-options {
+    margin-top: 2rem;
+    display: none;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Popup and overlay */
+.info-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #212121;
+    border: 2px solid #5d4037;
+    border-radius: 5px;
+    padding: 2rem;
+    max-width: 800px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 10;
+    display: none;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 9;
+    display: none;
+}
+
+/* Game scene components */
+#game-container {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    margin: 20px auto;
+    background-color: #000;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* Lake scene transformed to forest scene */
+.lake {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 70%;
+    background-color: #1b5e20;
+    animation: forest-sway 8s infinite linear;
+}
+
+/* Forest sway effect */
+@keyframes forest-sway {
+    0%, 100% { background-color: #1b5e20; }
+    50% { background-color: #2e7d32; }
+}
+
+/* Ground area */
+.ground {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 100px;
+    background-color: #3e2723;
+}
+
+/* Trees */
+.tree {
+    width: 60px;
+    height: 100px;
+    background: linear-gradient(to bottom, #2e7d32 0%, #2e7d32 70%, #4e342e 70%, #4e342e 100%);
+    border-radius: 50% 50% 0 0;
+    position: absolute;
+    bottom: 100px;
+}
+
+/* Charred tree */
+.charred-tree {
+    width: 60px;
+    height: 100px;
+    background: linear-gradient(to bottom, #33691e 0%, #33691e 70%, #3e2723 70%, #3e2723 100%);
+    border-radius: 50% 50% 0 0;
+    position: relative;
+}
+
+.charred-tree::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50% 50% 0 0;
+    left: 0;
+    top: 0;
+}
+
+/* Dock transformed to forest path */
+.dock {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 20px;
+    background-color: #5d4037;
+}
+
+/* Components */
+.component {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: #757575;
+    border: 2px solid #212121;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 10px;
+    color: #212121;
+}
+
+.component.battery {
+    background-color: #ffeb3b;
+}
+
+.component.wire {
+    background-color: #f44336;
+}
+
+.component.plate {
+    background-color: #9e9e9e;
+}
+
+.component.container {
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 1px solid white;
+}
+
+/* Bush */
+.bush {
+    width: 40px;
+    height: 40px;
+    background-color: #33691e;
+    border-radius: 50%;
+    position: absolute;
+}
+
+/* Rock */
+.rock {
+    width: 30px;
+    height: 20px;
+    background-color: #757575;
+    border-radius: 50% 50% 30% 30%;
+    position: absolute;
+}
+
+/* Device assembly area */
+#assembly-area {
+    position: absolute;
+    bottom: 130px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 120px;
+    background-color: rgba(62, 39, 35, 0.8);
+    border: 3px solid #5d4037;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 5px;
+    padding: 5px;
+    z-index: 5;
+}
+
+.assembly-slot {
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px dashed white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* UI Elements */
+#ui-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 20;
+    display: flex;
+    gap: 10px;
+}
+
+.element-counter {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#hydrogen-counter {
+    background-color: #212121;
+    color: #4caf50;
+}
+
+#oxygen-counter {
+    background-color: #212121;
+    color: #4caf50;
+}
+
+/* Journal */
+#journal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 500px;
+    height: 70%;
+    background-color: #d7ccc8;
+    border: 4px solid #8d6e63;
+    padding: 20px;
+    box-sizing: border-box;
+    display: none;
+    z-index: 30;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #3e2723;
+}
+
+#journal-icon {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 80px;
+    background-color: #8d6e63;
+    border: 2px solid #5d4037;
+    cursor: pointer;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #3e2723;
+    text-align: center;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+/* Power control */
+#power-control {
+    position: absolute;
+    top: 55px;
+    right: 10px;
+    width: 180px;
+    height: 80px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+    padding: 10px;
+    display: none;
+    z-index: 20;
+}
+
+#power-slider {
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* Bubble animations changed to leaves */
+.bubble {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #4caf50;
+    border-radius: 20% 50% 20% 50%;
+    animation: leaf-fall 5s linear forwards;
+    z-index: 15;
+    transform: rotate(45deg);
+}
+
+@keyframes leaf-fall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
+    50% { transform: translateY(-50px) translateX(20px) rotate(180deg); opacity: 0.5; }
+    100% { transform: translateY(-100px) translateX(-20px) rotate(360deg); opacity: 0; }
+}
+
+/* Messages */
+#dialog-box, #message-box {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 500px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 15px;
+    border-radius: 5px;
+    z-index: 25;
+    font-size: 14px;
+    opacity: 1;
+    transition: opacity 0.5s;
+}
+
+/* Character */
+#player, #character {
+    position: absolute;
+    width: 32px;
+    height: 48px;
+    background-color: #5d4037;
+    border-radius: 50% 50% 0 0;
+    bottom: 100px;
+    left: 100px;
+    z-index: 10;
+}
+
+#player::before, #character::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: #d7ccc8;
+    border-radius: 50%;
+    top: -15px;
+    left: 6px;
+}
+
+/* Inventory */
+#inventory {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 20;
+}
+
+#inventory-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.inventory-item {
+    margin: 5px 0;
+}
+
+.carbon-item {
+    color: #4caf50;
+}
+
+/* Level completion */
+#level-complete {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    text-align: center;
+    padding: 20px;
+}
+
+#level-complete h2 {
+    font-size: 2.5rem;
+    color: #ffeb3b;
+    margin-bottom: 1rem;
+}
+
+#level-complete p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+}
+
+/* Buttons for level completion */
+#next-level-button, button {
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+#restart-button {
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Title screen */
+#title-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+#title-screen h1 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+#start-button {
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Forest background */
+#forest-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        to right,
+        #1b5e20,
+        #1b5e20 20px,
+        #2e7d32 20px,
+        #2e7d32 40px
+    );
+    opacity: 0.2;
+}
+
+/* Hint button and objective */
+.hint-button {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 20;
+}
+
+.objective {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 20;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .periodic-table {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    .element, .element-slot {
+        width: 80px;
+        height: 80px;
+    }
+    
+    #game-container {
+        width: 100%;
+        height: 500px;
+    }
+}
+        </style>
+</head>
+<body>
+    <audio id="click-sound" src="sounds/click.mp3" preload="auto"></audio>
+    <audio id="start-sound" src="sounds/start.mp3" preload="auto"></audio>
+    <audio id="bg-music" src="sounds/background.mp3" preload="auto" loop></audio>
+    <audio id="yay-sound" src="sounds/yay.mp3" preload="auto"></audio>
+    <header>
+        <h1>The Alchemist's Journal: Final Assembly</h1>
+        <div class="journal-note">
+            "Now that you've collected all the elements, place them in their rightful positions on the periodic table. Then, discover how these building blocks are used in our world. The final knowledge awaits you, adventurer!"
+        </div>
+    </header>
+
+    <div class="game-container">
+        <div class="collected-elements">
+            <div class="element" draggable="true" data-element="C">
+                <div class="element-symbol">C</div>
+                <div class="element-name">Carbon</div>
+            </div>
+            <div class="element" draggable="true" data-element="H">
+                <div class="element-symbol">H</div>
+                <div class="element-name">Hydrogen</div>
+            </div>
+            <div class="element" draggable="true" data-element="O">
+                <div class="element-symbol">O</div>
+                <div class="element-name">Oxygen</div>
+            </div>
+            <div class="element" draggable="true" data-element="Fe">
+                <div class="element-symbol">Fe</div>
+                <div class="element-name">Iron</div>
+            </div>
+            <div class="element" draggable="true" data-element="N">
+                <div class="element-symbol">N</div>
+                <div class="element-name">Nitrogen</div>
+            </div>
+            <div class="element" draggable="true" data-element="Ca">
+                <div class="element-symbol">Ca</div>
+                <div class="element-name">Calcium</div>
+            </div>
+            <div class="element" draggable="true" data-element="Cu">
+                <div class="element-symbol">Cu</div>
+                <div class="element-name">Copper</div>
+            </div>
+            <div class="element" draggable="true" data-element="Na">
+                <div class="element-symbol">Na</div>
+                <div class="element-name">Sodium</div>
+            </div>
+            <div class="element" draggable="true" data-element="Cl">
+                <div class="element-symbol">Cl</div>
+                <div class="element-name">Chlorine</div>
+            </div>
+            <div class="element" draggable="true" data-element="Si">
+                <div class="element-symbol">Si</div>
+                <div class="element-name">Silicon</div>
+            </div>
+        </div>
+
+        <div class="periodic-table">
+            <div class="element-slot" data-target="H">
+                <div class="element-info">Atomic Number: 1</div>
+            </div>
+            <div class="element-slot" data-target="C">
+                <div class="element-info">Atomic Number: 6</div>
+            </div>
+            <div class="element-slot" data-target="N">
+                <div class="element-info">Atomic Number: 7</div>
+            </div>
+            <div class="element-slot" data-target="O">
+                <div class="element-info">Atomic Number: 8</div>
+            </div>
+            <div class="element-slot" data-target="Na">
+                <div class="element-info">Atomic Number: 11</div>
+            </div>
+            <div class="element-slot" data-target="Si">
+                <div class="element-info">Atomic Number: 14</div>
+            </div>
+            <div class="element-slot" data-target="Cl">
+                <div class="element-info">Atomic Number: 17</div>
+            </div>
+            <div class="element-slot" data-target="Ca">
+                <div class="element-info">Atomic Number: 20</div>
+            </div>
+            <div class="element-slot" data-target="Fe">
+                <div class="element-info">Atomic Number: 26</div>
+            </div>
+            <div class="element-slot" data-target="Cu">
+                <div class="element-info">Atomic Number: 29</div>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button class="btn btn-primary" id="check-periodic-table">Verify Arrangement</button>
+            <button class="btn btn-success" id="next-phase">Continue to Element Uses</button>
+        </div>
+
+        <div class="usage-matching">
+            <h2 class="usage-title">Match Elements to Their Real-World Uses</h2>
+            <div class="usage-container">
+                <div class="usage-card">
+                    <div class="usage-element">?</div>
+                    <div class="usage-description">Found in all organic compounds, the basis of life on Earth, used in graphite pencils and as diamonds in jewelry.</div>
+                    <input type="text" class="usage-input" data-answer="Carbon">
+                </div>
+                <div class="usage-card">
+                    <div class="usage-element">?</div>
+                    <div class="usage-description">The most abundant element in the universe, used in fuel cells and in combination with oxygen to form water.</div>
+                    <input type="text" class="usage-input" data-answer="Hydrogen">
+                </div>
+                <div class="usage-card">
+                    <div class="usage-element">?</div>
+                    <div class="usage-description">Essential for respiration, combustion, and makes up about 21% of Earth's atmosphere.</div>
+                    <input type="text" class="usage-input" data-answer="Oxygen">
+                </div>
+                <div class="usage-card">
+                    <div class="usage-element">?</div>
+                    <div class="usage-description">Used in steel production, found in hemoglobin in blood cells, and used in construction.</div>
+                    <input type="text" class="usage-input" data-answer="Iron">
+                </div>
+                <div class="usage-card">
+                    <div class="usage-element">?</div>
+                    <div class="usage-description">Essential component in fertilizers, makes up 78% of Earth's atmosphere, and is crucial for plant growth.</div>
+                    <input type="text" class="usage-input" data-answer="Nitrogen">
+                </div>
+                <div class="usage-card">
+                    <div class="usage-element">?</div>
+                    <div class="usage-description">Found in bones and teeth, used in construction materials like cement, and essential for strong plant growth.</div>
+                    <input type="text" class="usage-input" data-answer="Calcium">
+                </div>
+                <div class="usage-card">
+                    <div class="usage-element">?</div>
+                    <div class="usage-description">Excellent conductor used in electrical wiring, plumbing, and electronics, also found in US pennies.</div>
+                    <input type="text" class="usage-input" data-answer="Copper">
+                </div>
+                <div class="usage-card">
+                    <div class="usage-element">?</div>
+                    <div class="usage-description">Essential for nerve function, used in table salt, street lamps, and helps regulate body fluids.</div>
+                    <input type="text" class="usage-input" data-answer="Sodium">
+                </div>
+                <div class="usage-card">
+                    <div class="usage-element">?</div>
+                    <div class="usage-description">Used in water treatment, bleaches, disinfectants, and combines with sodium to form table salt.</div>
+                    <input type="text" class="usage-input" data-answer="Chlorine">
+                </div>
+                <div class="usage-card">
+                    <div class="usage-element">?</div>
+                    <div class="usage-description">Found in sand, used in glass production, computer chips, and solar panels.</div>
+                    <input type="text" class="usage-input" data-answer="Silicon">
+                </div>
+            </div>
+            
+            <div class="button-container">
+                <button class="btn btn-primary" id="check-usage">Complete Journal</button>
+            </div>
+        </div>
+
+        <div class="completion-message">
+            <h2 class="completion-title">Journey Complete!</h2>
+            <p>Congratulations, Samir! You have successfully collected and identified all elements in the alchemist's journal.</p>
+            <p>Your understanding of these fundamental building blocks of nature has unlocked the final secret:</p>
+            <p class="journal-note">
+                "The world around us is made of countless combinations of these elements. From the air we breathe 
+                <span class="element-icon">O</span><span class="element-icon">N</span> to the water we drink 
+                <span class="element-icon">H</span><span class="element-icon">O</span>, from the iron in our blood 
+                <span class="element-icon">Fe</span> to the calcium in our bones <span class="element-icon">Ca</span>. 
+                By understanding these elements, we understand the very fabric of our existence. 
+                May this knowledge guide you to make discoveries that benefit all living things."
+            </p>
+            <div class="endgame-options">
+                <button class="btn btn-primary" id="show-element-details">Element Encyclopedia</button>
+                <button class="btn btn-primary" id="restart-game">New Adventure</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="info-popup" id="element-popup">
+        <div class="popup-header">
+            <h2>Element Encyclopedia</h2>
+            <button class="close-btn">&times;</button>
+        </div>
+        <div class="popup-content">
+            <h3>Carbon (C)</h3>
+            <p>Carbon is the backbone of all living organisms. It forms the basis of organic chemistry, and can create millions of different compounds. Carbon exists in pure forms as graphite and diamond, and is the fourth most abundant element in the universe by mass.</p>
+            
+            <h3>Hydrogen (H)</h3>
+            <p>The lightest and most abundant element in the universe, hydrogen is primarily used for energy production, refining metals, and producing ammonia for fertilizers. It combines with oxygen to form water, essential for all life.</p>
+            
+            <h3>Oxygen (O)</h3>
+            <p>Making up 21% of Earth's atmosphere, oxygen is essential for respiration in most living organisms. It's also used in steel manufacturing, rocket fuel, and medical treatments.</p>
+            
+            <h3>Iron (Fe)</h3>
+            <p>Iron is crucial for modern infrastructure, manufacturing, and transportation. In the human body, iron is vital for hemoglobin, which carries oxygen in the blood. Iron has been used by humans since ancient times, defining the Iron Age.</p>
+            
+            <h3>Nitrogen (N)</h3>
+            <p>Though nitrogen makes up 78% of Earth's atmosphere, most organisms cannot directly use atmospheric nitrogen. It must be "fixed" into compounds. Nitrogen is essential for plant growth and is widely used in fertilizers.</p>
+            
+            <h3>Calcium (Ca)</h3>
+            <p>The fifth most abundant element in Earth's crust, calcium is crucial for building bones and teeth. It's also important for muscle function, nerve transmission, and blood clotting.</p>
+            
+            <h3>Copper (Cu)</h3>
+            <p>One of the first metals used by humans, copper is an excellent conductor of heat and electricity. It's essential in electrical wiring, plumbing, and is a vital nutrient for plants and animals.</p>
+            
+            <h3>Sodium (Na)</h3>
+            <p>Highly reactive, sodium is never found free in nature. Combined with chlorine, it forms table salt. Sodium is crucial for nerve and muscle function, and helps maintain fluid balance in living organisms.</p>
+            
+            <h3>Chlorine (Cl)</h3>
+            <p>As a gas, chlorine is used as a disinfectant for drinking water and swimming pools. Combined with sodium, it forms table salt. Chlorine compounds are used in a wide range of products including paper, textiles, medicines, and insecticides.</p>
+            
+            <h3>Silicon (Si)</h3>
+            <p>The second most abundant element in Earth's crust after oxygen, silicon is primarily found in sand and quartz. It's essential for modern electronics, solar panels, and forms the basis of computer chips that power our digital world.</p>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            periodicTableComplete: false,
+            usageMatchingComplete: false,
+            draggingElement: null
+        };
+
+        // DOM Elements
+        const elements = document.querySelectorAll('.element');
+        const slots = document.querySelectorAll('.element-slot');
+        const checkPeriodicTableBtn = document.getElementById('check-periodic-table');
+        const nextPhaseBtn = document.getElementById('next-phase');
+        const usageMatching = document.querySelector('.usage-matching');
+        const checkUsageBtn = document.getElementById('check-usage');
+        const completionMessage = document.querySelector('.completion-message');
+        const endgameOptions = document.querySelector('.endgame-options');
+        const showElementDetailsBtn = document.getElementById('show-element-details');
+        const restartGameBtn = document.getElementById('restart-game');
+        const elementPopup = document.getElementById('element-popup');
+        const overlay = document.getElementById('overlay');
+        const closeBtn = document.querySelector('.close-btn');
+        
+        // Set up drag and drop functionality
+        elements.forEach(element => {
+            element.addEventListener('dragstart', dragStart);
+            element.addEventListener('dragend', dragEnd);
+        });
+
+        slots.forEach(slot => {
+            slot.addEventListener('dragover', dragOver);
+            slot.addEventListener('dragenter', dragEnter);
+            slot.addEventListener('dragleave', dragLeave);
+            slot.addEventListener('drop', drop);
+        });
+
+        // Drag Functions
+        function dragStart(e) {
+            this.classList.add('dragging');
+            gameState.draggingElement = this;
+            
+            // Use dataTransfer to store the element data instead of changing display
+            e.dataTransfer.setData('text/plain', this.dataset.element);
+            
+            // Small delay to make the drag visual effect work
+            setTimeout(() => {
+                this.style.opacity = '0.4';
+            }, 0);
+        }
+
+        function dragEnd() {
+            this.classList.remove('dragging');
+            this.style.opacity = '1';
+        }
+
+        function dragOver(e) {
+            e.preventDefault(); // Necessary to allow dropping
+        }
+
+        function dragEnter(e) {
+            e.preventDefault();
+            this.classList.add('highlight');
+        }
+
+        function dragLeave() {
+            this.classList.remove('highlight');
+        }
+
+        function drop(e) {
+            e.preventDefault();
+            this.classList.remove('highlight');
+            
+            // Get the element being dragged
+            const elementData = e.dataTransfer.getData('text/plain');
+            const draggedElement = document.querySelector(`.element[data-element="${elementData}"]`);
+            
+            // Check if the slot is empty and the element matches the target
+            if (!this.querySelector('.element') && this.dataset.target === elementData) {
+                // Clone the element to avoid issues with the original
+                const elementClone = draggedElement.cloneNode(true);
+                elementClone.style.opacity = '1';
+                elementClone.setAttribute('draggable', 'false');
+                
+                // Add the element to the slot
+                this.appendChild(elementClone);
+                this.classList.add('filled');
+                
+                // Remove the original element from its container
+                draggedElement.remove();
+            }
+        }
+
+        // Check if all elements are correctly placed
+        checkPeriodicTableBtn.addEventListener('click', () => {
+            let allCorrect = true;
+            
+            slots.forEach(slot => {
+                const element = slot.querySelector('.element');
+                if (!element || element.dataset.element !== slot.dataset.target) {
+                    allCorrect = false;
+                }
+            });
+            
+            if (allCorrect) {
+                gameState.periodicTableComplete = true;
+                checkPeriodicTableBtn.style.display = 'none';
+                nextPhaseBtn.style.display = 'block';
+                
+                // Add success animation to the periodic table
+                slots.forEach(slot => {
+                    slot.style.borderColor = 'var(--success-color)';
+                    slot.style.transition = 'all 0.5s ease';
+                });
+            } else {
+                alert('Some elements are not in their correct positions. Keep trying!');
+            }
+        });
+
+        // Move to usage matching phase
+        nextPhaseBtn.addEventListener('click', () => {
+            usageMatching.style.display = 'block';
+            nextPhaseBtn.style.display = 'none';
+            document.querySelector('.periodic-table').style.opacity = '0.7';
+            
+            // Smooth scroll to the usage matching section
+            usageMatching.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Check usage matching answers
+        checkUsageBtn.addEventListener('click', () => {
+            const inputs = document.querySelectorAll('.usage-input');
+            let allCorrect = true;
+            
+            inputs.forEach(input => {
+                const answer = input.dataset.answer.toLowerCase();
+                const userAnswer = input.value.trim().toLowerCase();
+                
+                if (userAnswer === answer) {
+                    input.style.borderColor = 'var(--success-color)';
+                    input.parentElement.querySelector('.usage-element').textContent = input.dataset.answer;
+                    input.parentElement.querySelector('.usage-element').style.color = 'var(--success-color)';
+                } else {
+                    input.style.borderColor = 'var(--secondary-color)';
+                    allCorrect = false;
+                }
+            });
+            
+            if (allCorrect) {
+                gameState.usageMatchingComplete = true;
+                
+                // Show completion message
+                completionMessage.style.display = 'block';
+                endgameOptions.style.display = 'flex';
+                
+                // Hide the usage matching section
+                usageMatching.style.opacity = '0.5';
+                checkUsageBtn.style.display = 'none';
+                
+                // Smooth scroll to completion message
+                completionMessage.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                alert('Some answers are incorrect. Try again!');
+            }
+        });
+
+        // Show element details popup
+        showElementDetailsBtn.addEventListener('click', () => {
+            elementPopup.style.display = 'block';
+            overlay.style.display = 'block';
+        });
+
+        // Close popup
+        closeBtn.addEventListener('click', () => {
+            elementPopup.style.display = 'none';
+            overlay.style.display = 'none';
+        });
+
+        // Close popup when clicking overlay
+        overlay.addEventListener('click', () => {
+            elementPopup.style.display = 'none';
+            overlay.style.display = 'none';
+        });
+
+        // Restart game
+        restartGameBtn.addEventListener('click', () => {
+            alert('Thank you for playing! A new adventure awaits...');
+            window.location.href = 'index1.html'; // Redirect to game start
+        });
+        
+        // Helper function for easy placement (for testing or if drag-drop fails)
+        function placeElementManually(elementSymbol) {
+            const element = document.querySelector(`.element[data-element="${elementSymbol}"]`);
+            const slot = document.querySelector(`.element-slot[data-target="${elementSymbol}"]`);
+            
+            if (element && slot && !slot.querySelector('.element')) {
+                const elementClone = element.cloneNode(true);
+                elementClone.setAttribute('draggable', 'false');
+                slot.appendChild(elementClone);
+                slot.classList.add('filled');
+                element.remove();
+                return true;
+            }
+            return false;
+        }
+        
+        // Add a click-to-place fallback option
+        elements.forEach(element => {
+            element.addEventListener('click', function() {
+                const elementSymbol = this.dataset.element;
+                const targetSlot = document.querySelector(`.element-slot[data-target="${elementSymbol}"]`);
+                
+                if (targetSlot && !targetSlot.querySelector('.element')) {
+                    placeElementManually(elementSymbol);
+                }
+            });
+        });
+        
+        // Audio functionality
+        const clickSound = document.getElementById('click-sound');
+        const startSound = document.getElementById('start-sound');
+        const bgMusic = document.getElementById('bg-music');
+        const yaySound = document.getElementById('yay-sound');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.addEventListener('click', () => {
+                bgMusic.play().catch(() => {});
+            }, { once: true });
+
+            // Add click sound to buttons and interactive elements
+            const soundClickTargets = document.querySelectorAll('button, .element, .element-slot, .close-btn');
+            soundClickTargets.forEach(el => {
+                el.addEventListener('click', () => {
+                    clickSound.currentTime = 0;
+                    clickSound.play();
+                });
+            });
+
+            // Add start sound to any start-related buttons
+            const startButtons = document.querySelectorAll('button');
+            startButtons.forEach(btn => {
+                if (btn.textContent.toLowerCase().includes('start') || btn.textContent.toLowerCase().includes('begin')) {
+                    btn.addEventListener('click', () => {
+                        startSound.currentTime = 0;
+                        startSound.play();
+                    });
+                }
+            });
+
+            // Add yay sound when game is complete
+            const completionMessage = document.getElementById('completion-message');
+            if (completionMessage) {
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                            if (completionMessage.style.display === 'block') {
+                                yaySound.currentTime = 0;
+                                yaySound.play();
+                            }
+                        }
+                    });
+                });
+                observer.observe(completionMessage, { attributes: true });
+            }
+        });
+    </script>
+</body>
+</html>

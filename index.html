@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Hunting - The Elemental Quest</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        #game-landing {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #background {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                to right,
+                #1b5e20,
+                #1b5e20 20px,
+                #2e7d32 20px,
+                #2e7d32 40px
+            );
+            opacity: 0.2;
+            z-index: 1;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px 0;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #4caf50;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .journal-container {
+            width: 80%;
+            max-width: 800px;
+            height: 500px;
+            background-color: #d7ccc8;
+            border: 4px solid #8d6e63;
+            border-radius: 10px;
+            position: relative;
+            margin-bottom: 30px;
+            overflow: auto; /* Enable scrolling */
+        }
+        
+        .journal-page {
+            width: 100%;
+            background-color: #d7ccc8;
+            padding: 40px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #3e2723;
+            min-height: 100%;
+        }
+        
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 columns for mobile */
+            grid-gap: 20px;
+            width: 100%;
+            padding: 20px;
+        }
+        
+        @media (min-width: 768px) {
+            .level-grid {
+                grid-template-columns: repeat(4, 1fr); /* 4 columns for larger screens */
+            }
+        }
+        
+        .level-item {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1;
+            background-color: #424242;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .level-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+        }
+        
+        .level-item.locked {
+            background-color: #212121;
+            cursor: not-allowed;
+        }
+        
+        .level-item.locked::after {
+            content: '🔒';
+            position: absolute;
+            font-size: 2rem;
+            color: #757575;
+        }
+        
+        .level-item.current {
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.9);
+            animation: pulse 2s infinite;
+        }
+        
+        .level-element {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .level-number {
+            font-size: 1.2rem;
+            color: white;
+        }
+        
+        .level-name {
+            font-size: 0.9rem;
+            color: #bdbdbd;
+            text-align: center;
+            padding: 0 5px;
+        }
+        
+        .buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding-bottom: 30px;
+        }
+        
+        .game-button {
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .game-button:hover {
+            background-color: #2e7d32;
+        }
+        
+        .game-button:disabled {
+            background-color: #616161;
+            cursor: not-allowed;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(76, 175, 80, 1);
+            }
+            100% {
+                box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+            }
+        }
+        
+        .collected-elements {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 20;
+        }
+        
+        #help-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 20;
+        }
+        
+        #help-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .help-content {
+            width: 80%;
+            max-width: 600px;
+            background-color: #d7ccc8;
+            border: 4px solid #8d6e63;
+            padding: 20px;
+            border-radius: 10px;
+            color: #3e2723;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #3e2723;
+        }
+    </style>
+</head>
+<body>
+    <audio id="click-sound" src="sounds/click.mp3"></audio>
+    <audio id="start-sound" src="sounds/start.mp3"></audio>
+    <audio id="bg-music" src="sounds/background.mp3" autoplay loop></audio>
+    <div id="game-landing">
+        <div id="background"></div>
+        <div class="content">
+            <h1>Element Hunting</h1>
+            <h2>The Elemental Quest: Origins of the Periodic Table</h2>
+            
+            <div class="journal-container">
+                <div class="journal-page">
+                    <h3>Elemental Journal</h3>
+                    <p>Welcome, brave explorer! Your quest to discover the elements of our world begins here.</p>
+                    
+                    <div class="level-grid">
+                        <div class="level-item" data-level="1">
+                            <div class="level-element">C</div>
+                            <div class="level-number">Level 1</div>
+                            <div class="level-name">Whispering Woods</div>
+                        </div>
+                        <div class="level-item locked" data-level="2">
+                            <div class="level-element">H,O</div>
+                            <div class="level-number">Level 2</div>
+                            <div class="level-name">Silver Lake</div>
+                        </div>
+                        <div class="level-item locked" data-level="3">
+                            <div class="level-element">Fe</div>
+                            <div class="level-number">Level 3</div>
+                            <div class="level-name">Mountain Forge</div>
+                        </div>
+                        <div class="level-item locked" data-level="4">
+                            <div class="level-element">N</div>
+                            <div class="level-number">Level 4</div>
+                            <div class="level-name">Sunny Orchard</div>
+                        </div>
+                        <div class="level-item locked" data-level="5">
+                            <div class="level-element">Ca</div>
+                            <div class="level-number">Level 5</div>
+                            <div class="level-name">Coastal Cave</div>
+                        </div>
+                        <div class="level-item locked" data-level="6">
+                            <div class="level-element">Cu</div>
+                            <div class="level-number">Level 6</div>
+                            <div class="level-name">Electric Workshop</div>
+                        </div>
+                        <div class="level-item locked" data-level="7">
+                            <div class="level-element">Na,Cl</div>
+                            <div class="level-number">Level 7</div>
+                            <div class="level-name">Salt Flats</div>
+                        </div>
+                        <div class="level-item locked" data-level="8">
+                            <div class="level-element">Si</div>
+                            <div class="level-number">Level 8</div>
+                            <div class="level-name">City Streets</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <button id="start-button" class="game-button">Start Quest</button>
+                <button id="continue-button" class="game-button" disabled>Continue Quest</button>
+                <button id="reset-button" class="game-button">Reset Progress</button>
+            </div>
+            
+            <div class="collected-elements">
+                Elements Collected: <span id="elements-count">0/10</span>
+            </div>
+            
+            <div id="help-button">Help</div>
+        </div>
+    </div>
+    
+    <div id="help-modal">
+        <div class="help-content">
+            <button class="close-button">&times;</button>
+            <h3>How to Play</h3>
+            <p>Welcome to Element Hunting! In this game, you'll explore different environments to discover elements from the periodic table.</p>
+            <p><strong>Game Controls:</strong></p>
+            <ul>
+                <li>Use arrow keys or WASD to move your character</li>
+                <li>Click on objects to interact with them</li>
+                <li>Open the journal (bottom right) for clues and objectives</li>
+                <li>Collect all elements in each level to progress</li>
+            </ul>
+            <p><strong>Your progress is automatically saved</strong>, so you can continue your quest later!</p>
+        </div>
+    </div>
+    
+    <script>
+        const clickSound = document.getElementById('click-sound');
+        const startSound = document.getElementById('start-sound');
+        const bgMusic = document.getElementById('bg-music');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.addEventListener('click', () => {
+                bgMusic.play().catch(() => {});
+            }, { once: true });
+
+            // Add click sound to buttons and interactive elements
+            const soundClickTargets = document.querySelectorAll('button, .level-item, #help-button, .close-button');
+            soundClickTargets.forEach(el => {
+                el.addEventListener('click', () => {
+                    clickSound.currentTime = 0;
+                    clickSound.play();
+                });
+            });
+
+            // Add start sound to Start Quest button
+            const startButton = document.getElementById('start-button');
+            if (startButton) {
+                startButton.addEventListener('click', () => {
+                    startSound.currentTime = 0;
+                    startSound.play();
+                });
+            }
+        });
+        // Game progress data structure
+        const defaultGameProgress = {
+            currentLevel: 1,
+            completedLevels: [],
+            collectedElements: {
+                carbon: false,
+                hydrogen: false,
+                oxygen: false,
+                iron: false,
+                nitrogen: false,
+                calcium: false,
+                copper: false,
+                sodium: false,
+                chlorine: false,
+                silicon: false
+            }
+        };
+        
+        // Load game progress from localStorage
+        function loadGameProgress() {
+            const savedProgress = localStorage.getItem('elementHuntingProgress');
+            if (savedProgress) {
+                return JSON.parse(savedProgress);
+            }
+            return defaultGameProgress;
+        }
+        
+        // Save game progress to localStorage
+        function saveGameProgress(progress) {
+            localStorage.setItem('elementHuntingProgress', JSON.stringify(progress));
+        }
+        
+        // Update the UI based on game progress
+        function updateUI(gameProgress) {
+            const levelItems = document.querySelectorAll('.level-item');
+            let currentFound = false;
+            
+            levelItems.forEach(item => {
+                const levelNum = parseInt(item.getAttribute('data-level'));
+                
+                // Reset all classes first
+                item.classList.remove('locked');
+                item.classList.remove('current');
+                
+                // Set appropriate classes based on progress
+                if (gameProgress.completedLevels.includes(levelNum)) {
+                    // Level is completed
+                } else if (levelNum === gameProgress.currentLevel) {
+                    // Level is current
+                    item.classList.add('current');
+                    currentFound = true;
+                } else {
+                    // Level is locked
+                    item.classList.add('locked');
+                }
+            });
+            
+            // Update elements count
+            const totalElements = Object.values(gameProgress.collectedElements).filter(Boolean).length;
+            document.getElementById('elements-count').textContent = `${totalElements}/10`;
+            
+            // Update buttons
+            const continueButton = document.getElementById('continue-button');
+            if (gameProgress.completedLevels.length > 0 || gameProgress.currentLevel > 1) {
+                continueButton.disabled = false;
+            } else {
+                continueButton.disabled = true;
+            }
+        }
+        
+        // Initialize the game
+        function initGame() {
+            const gameProgress = loadGameProgress();
+            updateUI(gameProgress);
+            
+            // Set up event listeners
+            const levelItems = document.querySelectorAll('.level-item');
+            levelItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const levelNum = parseInt(item.getAttribute('data-level'));
+                    const gameProgress = loadGameProgress();
+                    
+                    // Only allow clicking on current or completed levels
+                    if (levelNum === gameProgress.currentLevel || gameProgress.completedLevels.includes(levelNum)) {
+                        window.location.href = `index${levelNum}.html`;
+                    }
+                });
+            });
+            
+            // Start button
+            document.getElementById('start-button').addEventListener('click', () => {
+                completeLevel(1, ['carbon']);
+                window.location.href = 'index1.html';
+            });
+            
+            // Continue button
+            document.getElementById('continue-button').addEventListener('click', () => {
+                const gameProgress = loadGameProgress();
+                window.location.href = `index${gameProgress.currentLevel}.html`;
+            });
+            
+            // Reset button
+            document.getElementById('reset-button').addEventListener('click', () => {
+                if (confirm('Are you sure you want to reset all game progress?')) {
+                    saveGameProgress(defaultGameProgress);
+                    updateUI(defaultGameProgress);
+                }
+            });
+            
+            // Help button
+            document.getElementById('help-button').addEventListener('click', () => {
+                document.getElementById('help-modal').style.display = 'flex';
+            });
+            
+            // Close help modal
+            document.querySelector('.close-button').addEventListener('click', () => {
+                document.getElementById('help-modal').style.display = 'none';
+            });
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
